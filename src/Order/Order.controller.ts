@@ -1,0 +1,29 @@
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { OrderEntity } from './Order.entity';
+import { OrderService } from './Order.service';
+
+
+
+@Controller('Order')
+export class OrderController {
+  constructor(private readonly orderService: OrderService) {}
+
+  @Get()
+  getHello(): string {
+    return this.orderService.getHello();
+  }
+  @Post('/add')
+  async addOrder(@Body() OrderData:any):Promise<string>
+  {
+    return await this.orderService.addOrder(OrderData);
+  }
+  @Get('/search')
+  async searchOrder():Promise<any>
+  {
+    return await this.orderService.searchOrder();
+  }
+  @Put('/edit/:id')
+  async editOrder(@Param('id', ParseIntPipe) id: number, @Body() updatedOrderData: any): Promise<string> {
+    return await this.orderService.editOrder(id, updatedOrderData);
+  }
+}
