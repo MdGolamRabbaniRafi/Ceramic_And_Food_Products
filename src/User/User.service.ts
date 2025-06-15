@@ -240,7 +240,20 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
     const user = await this.SearchByID(Id);
 
     if (user) {
-      const imageDeletionResult = await this.deleteImageFile(user.Image);
+      try{      const imageDeletionResult = await this.deleteImageFile(user.Image);
+              const deleteResult = await this.userRepo.delete(Id);
+
+      if (deleteResult.affected > 0) {
+        return true;
+      }
+}
+catch{
+        const deleteResult = await this.userRepo.delete(Id);
+
+      if (deleteResult.affected > 0) {
+        return true;
+      }
+}
 
       // If the image is successfully deleted, proceed to delete the user
       const deleteResult = await this.userRepo.delete(Id);
