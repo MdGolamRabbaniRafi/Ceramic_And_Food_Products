@@ -1,15 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Req, UseGuards,Request, Put, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
-import { UserEntity } from './User.entity';
-import { UserService } from './User.service';
-import { Request as ExpressRequest } from 'express';
-import { Roles } from 'src/Auth/Role/Roles.decorate';
-import { Role } from 'src/auth/Role/Role.enum';
-import { JwtGaurd } from 'src/auth/Gaurds/jwt-auth.gaurd';
-import { RolesGaurd } from 'src/auth/Role/Roles.gaurd';
-import { AuthGuard } from '@nestjs/passport';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
 import { extname, resolve } from 'path';
+import { Roles } from 'src/Auth/Role/Roles.decorate';
+import { Role } from 'src/auth/Role/Role.enum';
+import { UserEntity } from './User.entity';
+import { UserService } from './User.service';
 
 
 @Controller('User')
