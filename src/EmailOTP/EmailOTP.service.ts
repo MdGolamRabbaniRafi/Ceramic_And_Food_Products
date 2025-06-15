@@ -3,7 +3,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/User/User.entity';
 import { Repository } from 'typeorm';
-// import { RedisService } from 'src/Auth/Redis/redis.service';
+// import { RedisService } from 'src/auth/Redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { OTPEntity } from './EmailOTP.entity';
 

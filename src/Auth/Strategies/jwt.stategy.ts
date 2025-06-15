@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { UnauthorizedException, Injectable } from '@nestjs/common';
 // import { RedisService } from '../Redis/redis.service';
-import { TokenService } from '../Token/token.service';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
