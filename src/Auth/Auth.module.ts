@@ -1,22 +1,19 @@
 import { Module } from "@nestjs/common";
-import { AuthService } from "./Auth.service";
 import { JwtModule } from "@nestjs/jwt";
-import { UserService } from "src/User/User.service";
-import { LocalStrategy } from "./Strategies/local.strategy";
-import { AuthController } from "./Auth.controller";
+import { PassportModule } from "@nestjs/passport";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserEntity } from "src/User/User.entity";
-import { PassportModule } from "@nestjs/passport";
-import { JwtStrategy } from "./Strategies/jwt.stategy";
-import { refreshTokenStrategy } from "./Strategies/refreshToken.strategy";
+import { UserService } from "src/User/User.service";
+import { AuthController } from "./Auth.controller";
+import { AuthService } from "./Auth.service";
 import { RolesGaurd } from "./Role/Roles.gaurd";
+import { JwtStrategy } from "./Strategies/jwt.stategy";
+import { LocalStrategy } from "./Strategies/local.strategy";
+import { refreshTokenStrategy } from "./Strategies/refreshToken.strategy";
 // import { RedisService } from "./Redis/redis.service";
-import { JwtGaurd } from "./Gaurds/jwt-auth.gaurd";
+import { OTPEntity } from "src/EmailOTP/EmailOTP.entity";
 import { EmailOTPService } from "src/EmailOTP/EmailOTP.service";
 import { TokenModule } from "./token/Token.module";
-import { TokenService } from "./token/token.service";
-import { EmailOTPModule } from "src/EmailOTP/EmailOTP.module";
-import { OTPEntity } from "src/EmailOTP/EmailOTP.entity";
 // import { SimpleJwtGuard, SimpleJwtStrategy } from "./Gaurds/Simple_gaurd";
 @Module({
     imports: [

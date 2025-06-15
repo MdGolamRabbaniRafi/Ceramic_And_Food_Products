@@ -39,41 +39,59 @@ export class UserService {
     }
     return null;
   }
-  async deleteImageFile(imagePath: string): Promise<boolean> {
-    // Log the received imagePath to see if it is already altered
-    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
-      imagePath = imagePath.replace('https:/', 'https://');
-    }
-    let localImagePath: string = imagePath;
 
-    // Check for production environment and transform URL to local path
-    if (process.env.NODE_ENV === 'production') {
-      // Ensure imagePath starts with 'https://farseit.com/Upload' before replacing it
-      if (imagePath.startsWith(process.env.Host_url)) {
-        localImagePath = imagePath.replace(process.env.Host_url, process.env.Host_path);
-      } else {
-        return false;
-      }
-    }
-
-    // Resolve the absolute file path for the localImagePath
-    const resolvedPath = path.resolve(localImagePath);
-
-    // Check if the file exists before attempting to delete it
-    try {
-      await fs.access(resolvedPath);  // Check if file exists
-    } catch (err) {
-      return false;
-    }
-
-    try {
-      // Attempt to delete the image file from the server
-      await fs.unlink(resolvedPath);
-      return true;
-    } catch (err) {
-      return false;
-    }
+async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+  if (!imagePath) {
+    return { message: 'No image path provided' };
   }
+
+  // Normalize incorrect slashes
+  if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+    imagePath = imagePath.replace('https:/', 'https://');
+  }
+
+  // Extract filename from URL
+  const fileName = path.basename(imagePath);
+  console.log("basename:", fileName);
+
+  // Determine environment
+  const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+
+  // Get upload path from .env
+  let uploadDir = process.env.Auth_Image_Destination || '';
+
+  // If in production and image path starts with Host_url, convert URL to local path
+  if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+    uploadDir = process.env.Host_path
+      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
+      : uploadDir;
+  }
+
+  // Construct local file path
+  const localImagePath = path.join(uploadDir, fileName);
+  console.log("Resolved path for deletion:", localImagePath);
+
+  // Check if file exists
+  try {
+    await fs.access(localImagePath);
+  } catch (err) {
+    console.error("File not found:", localImagePath);
+    return { message: 'File not found' };
+  }
+
+  // Attempt deletion
+  try {
+    await fs.unlink(localImagePath);
+    console.log("File deleted:", fileName);
+    return { message: 'File deleted successfully' };
+  } catch (err) {
+    console.error("Failed to delete:", localImagePath, err);
+    return { message: 'Failed to delete file' };
+  }
+}
+
+
+
 
 async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { message: string }> {
   const userDetails = await this.SearchByID(Id);
@@ -86,8 +104,8 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
   const removeOldPath = await this.deleteImageFile(OldPath);
 
   // If failed to delete old image
-  if (!removeOldPath) {
-    return { message: "Failed to remove old profile picture." };
+  if (removeOldPath.message!='File deleted successfully') {
+    return removeOldPath;
   }
 
   // Try to update the profile picture path in the database

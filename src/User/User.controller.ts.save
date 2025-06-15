@@ -3,15 +3,9 @@ import { UserEntity } from './User.entity';
 import { UserService } from './User.service';
 import { Request as ExpressRequest } from 'express';
 import { Roles } from 'src/Auth/Role/Roles.decorate';
-<<<<<<< HEAD
 import { Role } from 'src/Auth/Role/Role.enum';
 import { JwtGaurd } from 'src/Auth/Gaurds/jwt-auth.gaurd';
 import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
-=======
-import { Role } from 'src/auth/Role/Role.enum';
-import { JwtGaurd } from 'src/auth/Gaurds/jwt-auth.gaurd';
-import { RolesGaurd } from 'src/auth/Role/Roles.gaurd';
->>>>>>> d14bcfedf2478b12f43d95ac153d1f4c1dc2c02f
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';

@@ -1,13 +1,11 @@
 import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { promises } from "dns";
 import { UserEntity } from "src/User/User.entity";
 import { UserService } from "src/User/User.service";
 // import { RedisService } from "./Redis/redis.service";
+import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { EmailOTPService } from "src/EmailOTP/EmailOTP.service";
-import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { TokenService } from "./token/token.service";
 
 
