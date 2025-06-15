@@ -3,13 +3,13 @@ import { UserEntity } from './User.entity';
 import { UserService } from './User.service';
 import { Request as ExpressRequest } from 'express';
 import { Roles } from 'src/Auth/Role/Roles.decorate';
-import { Role } from 'src/auth/Role/Role.enum';
-import { JwtGaurd } from 'src/auth/Gaurds/jwt-auth.gaurd';
-import { RolesGaurd } from 'src/auth/Role/Roles.gaurd';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
 import { extname, resolve } from 'path';
+import { Role } from 'src/Auth/Role/Role.enum';
+import { JwtGaurd } from 'src/Auth/Gaurds/jwt-auth.gaurd';
+import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
 @Controller('User')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -21,7 +21,7 @@ export class UserController {
 
   @Roles(Role.User)
 //   //@UseGuards(jwtGaurd,RolesGaurd)
-//   @UseGuards(JwtGaurd,RolesGaurd)
+  @UseGuards(JwtGaurd,RolesGaurd)
   @Get('/search/:id')
   async SearchByID(@Param('id', ParseIntPipe) Id: number, @Request() req): Promise<null | UserEntity> {
       console.log(req.headers['authorization']); // To see if the token is present
