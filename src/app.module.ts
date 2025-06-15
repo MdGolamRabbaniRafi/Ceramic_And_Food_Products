@@ -26,7 +26,7 @@ import { JwtGaurd } from './Auth/Gaurds/jwt-auth.gaurd';
 import { GraphModule } from './graph/Graph.module';
 import { CuponModule } from './Cupon/Cupon.module';
 import { PathaoModule } from './pathao/Pathao.module';
-import { TokenModule } from './Aut./token/Token.module';
+import { TokenModule } from './Auth/token/Token.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OfferModule } from './Offer/Offer.Module';
 
