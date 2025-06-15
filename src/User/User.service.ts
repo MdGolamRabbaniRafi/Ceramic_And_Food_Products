@@ -39,8 +39,11 @@ export class UserService {
     }
     return null;
   }
-async deleteImageFile(imagePath: string): Promise<boolean> {
-  if (!imagePath) return false;
+
+async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+  if (!imagePath) {
+    return { message: 'No image path provided' };
+  }
 
   // Normalize incorrect slashes
   if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
@@ -60,7 +63,7 @@ async deleteImageFile(imagePath: string): Promise<boolean> {
   // If in production and image path starts with Host_url, convert URL to local path
   if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
     uploadDir = process.env.Host_path
-      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, '')) // Ensure no duplication
+      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
       : uploadDir;
   }
 
@@ -73,19 +76,20 @@ async deleteImageFile(imagePath: string): Promise<boolean> {
     await fs.access(localImagePath);
   } catch (err) {
     console.error("File not found:", localImagePath);
-    return false;
+    return { message: 'File not found' };
   }
 
   // Attempt deletion
   try {
     await fs.unlink(localImagePath);
     console.log("File deleted:", fileName);
-    return true;
+    return { message: 'File deleted successfully' };
   } catch (err) {
     console.error("Failed to delete:", localImagePath, err);
-    return false;
+    return { message: 'Failed to delete file' };
   }
 }
+
 
 
 
@@ -100,8 +104,8 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
   const removeOldPath = await this.deleteImageFile(OldPath);
 
   // If failed to delete old image
-  if (!removeOldPath) {
-    return { message: "Failed to remove old profile picture." };
+  if (removeOldPath.message!='File deleted successfully') {
+    return removeOldPath;
   }
 
   // Try to update the profile picture path in the database
