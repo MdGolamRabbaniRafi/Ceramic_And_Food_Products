@@ -8,7 +8,7 @@ import * as jwt from 'jsonwebtoken';
 import { EmailOTPService } from "src/EmailOTP/EmailOTP.service";
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { TokenService } from "./Token/token.service";
+import { TokenService } from "./token/token.service";
 
 
 @Injectable()

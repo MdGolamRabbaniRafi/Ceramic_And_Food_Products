@@ -2,10 +2,10 @@ import { Body, Controller, Get, Param, ParseIntPipe, Req, UseGuards,Request, Put
 import { UserEntity } from './User.entity';
 import { UserService } from './User.service';
 import { Request as ExpressRequest } from 'express';
-import { Roles } from 'src/Auth/Role/Roles.decorate';
-import { Role } from 'src/Auth/Role/Role.enum';
-import { JwtGaurd } from 'src/Auth/Gaurds/jwt-auth.gaurd';
-import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
+import { Roles } from 'src/auth/Role/Roles.decorate';
+import { Role } from 'src/auth/Role/Role.enum';
+import { JwtGaurd } from 'src/auth/Gaurds/jwt-auth.gaurd';
+import { RolesGaurd } from 'src/auth/Role/Roles.gaurd';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
@@ -48,12 +48,12 @@ export class UserController {
     limits: { fileSize: 1000000 }, // 100 KB limit
     storage: diskStorage({
       destination: (req, file, cb) => {
-        let urlPath = process.env.Auth_Image_Destination;
-  
+       let urlPath = process.env.Auth_Image_Destination;
+
         // Detect CPanel or similar hosting and convert URL to local directory path dynamically
-        if (urlPath.startsWith('https://farseit.com')) {
+        if (urlPath.startsWith(process.env.Host_url)) {
           // Convert the public URL path to the local file system path
-          const localPath = urlPath.replace('https://farseit.com', '/home/farseit1/public_html');
+          const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
           cb(null, resolve(localPath));  // Save to the local path in the server
         } else {
           // For other environments, use the resolved path as it is
@@ -68,18 +68,14 @@ export class UserController {
       }
     })
   }))
-  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number,@UploadedFile() myfile: Express.Multer.File): Promise<null |UserEntity>
+  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number,@UploadedFile() myfile: Express.Multer.File): Promise<{ message: string } |UserEntity>
   {
-    let filePath=myfile.path;
     let imageUrl = process.env.Auth_Image_Destination;
-  
-    // if (imageUrl.startsWith('https://farseit.com')) {
-      // Append the filename to the base URL
-      imageUrl = `${imageUrl}${myfile.filename}`;
-    // }    
-    
-    filePath=imageUrl;
-    return await this.userService.ChangeProfilePicture(Id,filePath);
+    imageUrl = `${imageUrl}${myfile.filename}`;
+    const trimmedPath = imageUrl.replace(process.env.Host_path, '');
+    const finalUrl = `https://${trimmedPath}`;
+    const Image = finalUrl;
+    return await this.userService.ChangeProfilePicture(Id,Image);
 
   }
   @Put('/ChangePassword/:id')

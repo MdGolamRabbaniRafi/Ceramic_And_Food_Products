@@ -1,13 +1,12 @@
-import { Body, Controller, Post, UseGuards, Request, UseInterceptors, UploadedFile, Req, ExecutionContext, InternalServerErrorException, HttpStatus, HttpException } from "@nestjs/common";
-import { AuthService } from "./Auth.service";
-import { UserEntity } from "src/User/User.entity";
-import { LocalGaurd } from "./Gaurds/local-auth.gaurd";
-import { use } from "passport";
-import { refreshJwtGaurd } from "./Gaurds/refresh-jwt-auth.gaurd";
+import { Body, Controller, HttpException, HttpStatus, InternalServerErrorException, Post, Request, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage, MulterError } from "multer";
-import { JwtGaurd } from "./Gaurds/jwt-auth.gaurd";
 import { extname, resolve } from "path";
+import { UserEntity } from "src/User/User.entity";
+import { AuthService } from "./Auth.service";
+import { JwtGaurd } from "./Gaurds/jwt-auth.gaurd";
+import { LocalGaurd } from "./Gaurds/local-auth.gaurd";
+import { refreshJwtGaurd } from "./Gaurds/refresh-jwt-auth.gaurd";
 
 @Controller('auth')
 export class AuthController {
@@ -90,12 +89,6 @@ export class AuthController {
   async SignUp(@Body() userEntity: UserEntity, @UploadedFile() myfile: Express.Multer.File) {
     // Set the full URL of the uploaded image
     let imageUrl = process.env.Auth_Image_Destination;
-
-
-
-
-    // if (imageUrl.startsWith('https://farseit.com')) {
-    // Append the filename to the base URL
     imageUrl = `${imageUrl}${myfile.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
     const finalUrl = `https://${trimmedPath}`;

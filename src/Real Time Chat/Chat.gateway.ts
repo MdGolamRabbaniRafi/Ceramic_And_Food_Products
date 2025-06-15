@@ -9,7 +9,7 @@
 // } from '@nestjs/websockets';
 // import { Server, Socket } from 'socket.io';
 // import { ChatService } from './chat.service';
-// import { RedisService } from 'src/Auth/Redis/redis.service';
+// import { RedisService } from 'src/auth/Redis/redis.service';
 // import { UserService } from 'src/User/User.service';
 // import { use } from 'passport';
 // import { NotFoundError } from 'rxjs';

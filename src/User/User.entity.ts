@@ -1,5 +1,5 @@
-// import { Role } from "src/Auth/Role/Role.enum";
-import { TokenEntity } from "src/Auth/Token/Token.entity";
+// import { Role } from "src/auth/Role/Role.enum";
+import { TokenEntity } from "src/Auth/token/Token.entity";
 import { CartEntity } from "src/Cart/Cart.entity";
 // import { Message } from "src/Real Time Chat/message.entity";
 import { ReviewRatingEntity } from "src/Review And Rating/ReviewRating.entity";
