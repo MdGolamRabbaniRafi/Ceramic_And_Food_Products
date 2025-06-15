@@ -36,6 +36,8 @@ export class UserController {
   ): Promise<UserEntity | null> {
     return await this.userService.EditUserProfileByID(Id, updatedData);
   }
+
+
   @Put('/ChangeProfilePicture/:id')
   @UseInterceptors(FileInterceptor('ProfilePicture', {
     fileFilter: (req, file, cb) => {
@@ -78,6 +80,8 @@ export class UserController {
     return await this.userService.ChangeProfilePicture(Id,Image);
 
   }
+
+  
   @Put('/ChangePassword/:id')
   async ChangePassword(
     @Param('id',ParseIntPipe) Id:number,
