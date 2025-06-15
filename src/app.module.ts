@@ -14,7 +14,7 @@ import { PaymentModule } from './Payment/Payment.module';
 import { DiscountModule } from './Product/Discount/Discount.module';
 import { CollectionModule } from './Collection/Collection.module';
 // import { ProductCollectionMapperModule } from './Mapper/Product Collection Mapper/PCM.module';
-import { BannerModule } from './banner/Banner.module';
+import { BannerModule } from './Banner/Banner.module';
 import { ReviewRatingModule } from './Review And Rating/ReviewRating.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WishListModule } from './WishList/WishList.module';
