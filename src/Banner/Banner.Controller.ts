@@ -15,7 +15,10 @@ export class BannerController {
     return this.BannerService.getHello();
   }
 
-
+  @Get('/search/:id')
+  async getBanners(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return await this.BannerService.findById(id);
+  }
 
   @Post('/add')
   @UseInterceptors(
@@ -47,9 +50,9 @@ export class BannerController {
     const eventLink = req.body.EventLink; // Single event link
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
-    console.log("imageUrl",imageUrl)
+    console.log("imageUrl", imageUrl)
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-        console.log("trimmedPath",trimmedPath)
+    console.log("trimmedPath", trimmedPath)
 
     const finalUrl = `https://${trimmedPath}`;
     const Image = finalUrl;
@@ -66,11 +69,11 @@ export class BannerController {
     return await this.BannerService.addSingle(bannerData);
   }
 
-    @Get('/count')
+  @Get('/count')
   async countBanners(): Promise<number> {
     return await this.BannerService.countBanners();
   }
-  
+
   @Get('/all')
   async getAllBanners(): Promise<any> {
 
@@ -78,10 +81,7 @@ export class BannerController {
 
   }
 
-@Get('/:id')
-async getBanners(@Param('id', ParseIntPipe) id: number): Promise<any> {
-  return await this.BannerService.findById(id);
-}
+
 
 
 
@@ -117,7 +117,7 @@ async getBanners(@Param('id', ParseIntPipe) id: number): Promise<any> {
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
     @Body('EventLink') eventLink: string,
-  ):Promise<{ message: string; banner?: BannerEntity }> {
+  ): Promise<{ message: string; banner?: BannerEntity }> {
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
