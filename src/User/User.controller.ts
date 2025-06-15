@@ -2,10 +2,10 @@ import { Body, Controller, Get, Param, ParseIntPipe, Req, UseGuards,Request, Put
 import { UserEntity } from './User.entity';
 import { UserService } from './User.service';
 import { Request as ExpressRequest } from 'express';
-import { Roles } from 'src/auth/Role/Roles.decorate';
-import { Role } from 'src/auth/Role/Role.enum';
-import { JwtGaurd } from 'src/auth/Gaurds/jwt-auth.gaurd';
-import { RolesGaurd } from 'src/auth/Role/Roles.gaurd';
+import { Roles } from 'src/Auth/Role/Roles.decorate';
+import { Role } from 'src/Auth/Role/Role.enum';
+import { JwtGaurd } from 'src/Auth/Gaurds/jwt-auth.gaurd';
+import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
