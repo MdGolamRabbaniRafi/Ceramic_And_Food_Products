@@ -49,8 +49,8 @@ export class UserService {
     // Check for production environment and transform URL to local path
     if (process.env.NODE_ENV === 'production') {
       // Ensure imagePath starts with 'https://farseit.com/Upload' before replacing it
-      if (imagePath.startsWith('https://farseit.com/Upload')) {
-        localImagePath = imagePath.replace('https://farseit.com/Upload', '/home/farseit1/public_html/Upload');
+      if (imagePath.startsWith(process.env.Host_url)) {
+        localImagePath = imagePath.replace(process.env.Host_url, process.env.Host_path);
       } else {
         return false;
       }
@@ -75,34 +75,36 @@ export class UserService {
     }
   }
 
-  async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | null> {
-    const userDetails = await this.SearchByID(Id);
-    const OldPath = (await userDetails).Image;
+async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { message: string }> {
+  const userDetails = await this.SearchByID(Id);
+  const OldPath = userDetails.Image;
 
-    // Log the old path to check its format
-    console.log("Old Path from database:", OldPath);
+  // Log the old path to check its format
+  console.log("Old Path from database:", OldPath);
 
-    // Attempt to delete the old image and capture the result message
-    const removeOldPath = await this.deleteImageFile(OldPath);
+  // Attempt to delete the old image and capture the result message
+  const removeOldPath = await this.deleteImageFile(OldPath);
 
-    // Check the result of the image deletion step
-    if (removeOldPath) {
-      // Try to update the profile picture path in the database
-      const result = await this.userRepo.update(Id, {
-        Image: path,
-      });
-
-      if (result.affected > 0) {
-        const updatedUser = await this.userRepo.findOne({ where: { Id } });
-        if (updatedUser) {
-          return updatedUser;
-        }
-      }
-      return null;
-    } else {
-      return null;
-    }
+  // If failed to delete old image
+  if (!removeOldPath) {
+    return { message: "Failed to remove old profile picture." };
   }
+
+  // Try to update the profile picture path in the database
+  const result = await this.userRepo.update(Id, { Image: path });
+
+  if (result.affected > 0) {
+    const updatedUser = await this.userRepo.findOne({ where: { Id } });
+    if (updatedUser) {
+      return updatedUser;
+    } else {
+      return { message: "Profile picture updated, but failed to fetch updated user details." };
+    }
+  } else {
+    return { message: "Failed to update profile picture in database." };
+  }
+}
+
 
   // In UserService
   async getAllUsers(): Promise<UserEntity[] | null> {

@@ -68,7 +68,7 @@ export class UserController {
       }
     })
   }))
-  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number,@UploadedFile() myfile: Express.Multer.File): Promise<null |UserEntity>
+  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number,@UploadedFile() myfile: Express.Multer.File): Promise<{ message: string } |UserEntity>
   {
     let imageUrl = process.env.Auth_Image_Destination;
     imageUrl = `${imageUrl}${myfile.filename}`;
