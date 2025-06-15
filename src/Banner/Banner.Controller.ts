@@ -47,7 +47,10 @@ export class BannerController {
     const eventLink = req.body.EventLink; // Single event link
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
+    console.log("imageUrl",imageUrl)
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
+        console.log("trimmedPath",trimmedPath)
+
     const finalUrl = `https://${trimmedPath}`;
     const Image = finalUrl;
     // } 
