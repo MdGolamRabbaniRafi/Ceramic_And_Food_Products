@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { BannerEntity } from './Banner.entity';
 import { BannerService } from './Banner.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
@@ -66,15 +66,26 @@ export class BannerController {
     return await this.BannerService.addSingle(bannerData);
   }
 
-
-
-
+    @Get('/count')
+  async countBanners(): Promise<number> {
+    return await this.BannerService.countBanners();
+  }
+  
   @Get('/all')
   async getAllBanners(): Promise<any> {
 
     return await this.BannerService.getAll();
 
   }
+
+@Get('/:id')
+async getBanners(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  return await this.BannerService.findById(id);
+}
+
+
+
+
 
   @Put('/edit/:id')
   @UseInterceptors(
@@ -83,10 +94,13 @@ export class BannerController {
         destination: (req, file, cb) => {
           let urlPath = process.env.Banner_Image_Destination;
 
-          if (urlPath.startsWith('https://farseit.com')) {
-            const localPath = urlPath.replace('https://farseit.com', '/home/farseit1/public_html');
-            cb(null, resolve(localPath));  // Save to the local path on the server
+          // Detect CPanel or similar hosting and convert URL to local directory path dynamically
+          if (urlPath.startsWith(process.env.Host_url)) {
+            // Convert the public URL path to the local file system path
+            const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
+            cb(null, resolve(localPath));  // Save to the local path in the server
           } else {
+            // For other environments, use the resolved path as it is
             cb(null, resolve(urlPath));
           }
         },
@@ -103,17 +117,21 @@ export class BannerController {
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
     @Body('EventLink') eventLink: string,
-  ): Promise<BannerEntity> {
-    const imageBaseUrl = process.env.Banner_Image_Destination;
-    const imageUrl = `${imageBaseUrl}${file.filename}`;
+  ):Promise<{ message: string; banner?: BannerEntity }> {
+    let imageUrl = process.env.Banner_Image_Destination;
+    imageUrl = `${imageUrl}${file.filename}`;
+    const trimmedPath = imageUrl.replace(process.env.Host_path, '');
+    const finalUrl = `https://${trimmedPath}`;
+    const Image = finalUrl;
     const updatedBannerData = {
       fileName: file ? file.filename : null,
-      path: file ? imageUrl : null,
+      path: file ? Image : null,
       eventLink,
     };
 
     return await this.BannerService.editBanner(id, updatedBannerData);
   }
+
   @Delete('/delete/:id')
   async deleteBanner(@Param('id') id: number, @Res() res: Response): Promise<any> {
     try {
@@ -129,10 +147,6 @@ export class BannerController {
     }
   }
 
-  @Get('/count')
-  async countBanners(): Promise<number> {
-    return await this.BannerService.countBanners();
-  }
 
 
 }
