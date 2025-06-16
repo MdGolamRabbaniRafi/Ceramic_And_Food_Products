@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, Res, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import { diskStorage } from 'multer';
+import { extname, resolve } from 'path';
 import { BannerEntity } from './Banner.entity';
 import { BannerService } from './Banner.service';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { Response } from 'express';
-import { extname, resolve } from 'path';
 
 @Controller('Banner')
 export class BannerController {
@@ -50,12 +50,16 @@ export class BannerController {
     const eventLink = req.body.EventLink; // Single event link
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
-    console.log("imageUrl", imageUrl)
-    const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-    console.log("trimmedPath", trimmedPath)
 
-    const finalUrl = `https://${trimmedPath}`;
-    const Image = finalUrl;
+    const trimmedPath = imageUrl.replace(process.env.Host_path, '');
+        const isProduction = process.env.NODE_ENV === 'production';
+    let finalUrl: string;
+    if (isProduction) {
+      finalUrl = `https://${trimmedPath}`;
+    }
+    else {
+      finalUrl = trimmedPath;
+    } const Image = finalUrl;
     // } 
     console.log("imageUrl", imageUrl)
 
@@ -121,7 +125,14 @@ export class BannerController {
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-    const finalUrl = `https://${trimmedPath}`;
+        const isProduction = process.env.NODE_ENV === 'production';
+    let finalUrl: string;
+    if (isProduction) {
+      finalUrl = `https://${trimmedPath}`;
+    }
+    else {
+      finalUrl = trimmedPath;
+    }  
     const Image = finalUrl;
     const updatedBannerData = {
       fileName: file ? file.filename : null,

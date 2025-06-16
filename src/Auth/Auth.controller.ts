@@ -90,8 +90,20 @@ export class AuthController {
     // Set the full URL of the uploaded image
     let imageUrl = process.env.Auth_Image_Destination;
     imageUrl = `${imageUrl}${myfile.filename}`;
+    const isProduction = process.env.NODE_ENV === 'production';
+
+// Now determine the final image URL based on the environment
+let finalUrl: string;
+
+
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-    const finalUrl = `https://${trimmedPath}`;
+    if (isProduction) {
+  // In production: construct full public URL
+     finalUrl = `https://${trimmedPath}`;
+    }
+    else{
+      finalUrl=trimmedPath;
+    }
     userEntity.Image = finalUrl;
     // } 
     console.log("imageUrl", imageUrl)

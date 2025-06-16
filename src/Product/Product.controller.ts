@@ -30,15 +30,15 @@ export class ProductController {
       return productWithImages;
     }
   
-    return null;
+    return {message:"Product not found"};
   }
   
   @Get('/search')
-  async Search(): Promise<null | any[]> {
+  async Search(): Promise<{message:string} | any[]> {
 
     const productEntities =await this.productService.Search();
     if (productEntities) {
-      const baseImageUrl = process.env.Product_Image_Destination;
+      // const baseImageUrl = process.env.Product_Image_Destination;
   
       const productsWithImages = productEntities.map(product => {
         return {
@@ -79,22 +79,22 @@ export class ProductController {
   
     return null;
   }
+  
   @Post('/add')
   @UseInterceptors(
     FilesInterceptor('ProductPicture', 10, {
       storage: diskStorage({
         destination: (req, file, cb) => {
           let urlPath = process.env.Product_Image_Destination;
-  
-          // Detect CPanel or similar hosting and convert URL to local directory path dynamically
-         // if (urlPath.startsWith('https://farseit.com')) {
-            // Convert the public URL path to the local file system path
-            const localPath = urlPath.replace('https://farseit.com', '/home/farseit1/public_html');
-            cb(null, resolve(localPath));  // Save to the local path in the server
-          // } else {
-          //   // For other environments, use the resolved path as it is
-          //   cb(null, resolve(urlPath));
-          // }
+        // Detect CPanel or similar hosting and convert URL to local directory path dynamically
+        if (urlPath.startsWith(process.env.Host_url)) {
+          // Convert the public URL path to the local file system path
+          const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
+          cb(null, resolve(localPath));  // Save to the local path in the server
+        } else {
+          // For other environments, use the resolved path as it is
+          cb(null, resolve(urlPath));
+        }
         },
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -111,9 +111,37 @@ export class ProductController {
   ): Promise<boolean | ProductEntity> {
     const { name, desc, price, quantity, date, json_attribute, categoryId } = req.body;
   
+
+        let imageBaseUrl = process.env.Product_Image_Destination;
+        let imageUrls = ""
+
     // Use the base URL for image paths
-    const imageBaseUrl = process.env.Product_Image_Destination;
-    const imageUrls = files.map(file => `${imageBaseUrl}${file.filename}`).join(',');
+    const urls=files.map(file=>{
+      
+
+    imageBaseUrl = `${imageBaseUrl}${file.filename}`;
+    const trimmedPath = imageBaseUrl.replace(process.env.Host_path, '');
+        const isProduction = process.env.NODE_ENV === 'production';
+    let finalUrl: string;
+    if (isProduction) {
+      finalUrl = `https://${trimmedPath}`;
+    }
+    else {
+      finalUrl = trimmedPath;
+    }
+      imageUrls += (imageUrls ? ',' : '') + finalUrl;
+
+    })
+
+
+
+
+
+
+
+
+    
+    // const imageUrls = files.map(file => `${imageBaseUrl}${file.filename}`).join(',');
   
     const productData: Partial<ProductEntity> = {
       name,

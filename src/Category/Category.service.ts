@@ -28,12 +28,12 @@ export class CategoryService {
   }
 
 
-  async addCategory(categoryEntity: CategoryEntity): Promise<boolean> {
+  async addCategory(categoryEntity: CategoryEntity): Promise<CategoryEntity|{message:string}> {
     let Category = await this.categoryRepo.save(categoryEntity);
     if (Category != null) {
-      return true;
+      return Category;
     }
-    return false;
+    return {message:"Category not added"};
   }
   async editCategory(id: number, categoryData: Partial<CategoryEntity>): Promise<boolean> {
     const existingCategory = await this.categoryRepo.findOne({ where: { Id: id } });

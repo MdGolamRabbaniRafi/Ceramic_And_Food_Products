@@ -73,7 +73,14 @@ export class UserController {
     let imageUrl = process.env.Auth_Image_Destination;
     imageUrl = `${imageUrl}${myfile.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-    const finalUrl = `https://${trimmedPath}`;
+        const isProduction = process.env.NODE_ENV === 'production';
+    let finalUrl: string;
+    if (isProduction) {
+      finalUrl = `https://${trimmedPath}`;
+    }
+    else {
+      finalUrl = trimmedPath;
+    }
     const Image = finalUrl;
     return await this.userService.ChangeProfilePicture(Id,Image);
 

@@ -143,7 +143,7 @@ export class ProductService {
           // Convert the string to an array, process it, and convert it back to a string
           product.image = product.image
               .split(',') // Split by comma if multiple images are stored as a string
-              .map(imgPath => imgPath.replace('/home/farseit1/public_html', 'https://farseit.com'))
+              .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
               .join(','); // Join back into a string
       }
         if (product.discount) {
@@ -415,7 +415,7 @@ export class ProductService {
       localImagePath = imagePath;
 
     //  if (process.env.NODE_ENV === 'production') {
-        localImagePath = imagePath.replace('https://farseit.com', '/home/farseit1/public_html');
+        localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
     //  }
 
       const resolvedPath = path.resolve(localImagePath);
