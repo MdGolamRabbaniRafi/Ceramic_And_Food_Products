@@ -315,18 +315,17 @@ export class ProductService {
       {
       }
       if (productData.image && product.image !== productData.image) {
-  if (product.image) {
-      const imageArray = product.image.split(',')
-      imageArray.forEach(async img => {
-      const res = await this.deleteImageFile(img);
-      console.log(product.image);
-      if(res.message!="Successfully deleted all images.")
-      {
-        return res;
-      }
-      });
+        if (product.image) {
+          const imageArray = product.image.split(',')
+          imageArray.forEach(async img => {
+            const res = await this.deleteImageFile(img);
+            console.log(product.image);
+            if (res.message != "File deleted successfully") {
+              return res;
+            }
+          });
 
-    }
+        }
       }
 
       if (productData.name != null && typeof productData.name !== 'string') {
@@ -407,11 +406,11 @@ export class ProductService {
       return await this.productRepo.findOne({ where: { Id: id } });
     } catch (error) {
       console.error("Error editing product details:", error.message);
-      return{message:"Error editing product details"}
+      return { message: "Error editing product details" }
     }
   }
 
-  async deleteProduct(id: number): Promise<{message:string}> {
+  async deleteProduct(id: number): Promise<{ message: string }> {
     const product = await this.productRepo.findOne({ where: { Id: id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -420,57 +419,56 @@ export class ProductService {
     if (product.image) {
       const imageArray = product.image.split(',')
       imageArray.forEach(async img => {
-      const res = await this.deleteImageFile(img);
-      console.log(product.image);
-      if(res.message!="Successfully deleted all images.")
-      {
-        return res;
-      }
+        const res = await this.deleteImageFile(img);
+        console.log(product.image);
+        if (res.message != "File deleted successfully") {
+          return res;
+        }
       });
 
     }
-    
+
 
     try {
-     await this.productRepo.delete(id);
-      return {message:"Product removed successfully"};
+      await this.productRepo.delete(id);
+      return { message: "Product removed successfully" };
     } catch (error) {
       console.error("Error removing product:", error.message);
       throw new InternalServerErrorException('Error removing product');
     }
   }
-  
+
   async deleteImageFile(imagePath: string): Promise<{ message: string }> {
     if (!imagePath) {
       return { message: 'No image path provided' };
     }
-  
+
     // Normalize incorrect slashes
     if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
       imagePath = imagePath.replace('https:/', 'https://');
     }
-  
+
     // Extract filename from URL
     const fileName = path.basename(imagePath);
     console.log("basename:", fileName);
-  
+
     // Determine environment
     const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
-  
+
     // Get upload path from .env
     let uploadDir = process.env.Auth_Image_Destination || '';
-  
+
     // If in production and image path starts with Host_url, convert URL to local path
     if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
       uploadDir = process.env.Host_path
         ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
         : uploadDir;
     }
-  
+
     // Construct local file path
     const localImagePath = path.join(uploadDir, fileName);
     console.log("Resolved path for deletion:", localImagePath);
-  
+
     // Check if file exists
     try {
       await fs.access(localImagePath);
@@ -478,7 +476,7 @@ export class ProductService {
       console.error("File not found:", localImagePath);
       return { message: 'File not found' };
     }
-  
+
     // Attempt deletion
     try {
       await fs.unlink(localImagePath);
@@ -492,37 +490,37 @@ export class ProductService {
 
 
 
-// private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
-//   const imageArray = imagePaths.split(',').map(image => image.trim());
+  // private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
+  //   const imageArray = imagePaths.split(',').map(image => image.trim());
 
-//   const deletionPromises = imageArray.map(imagePath => {
-//     // Convert to local path if needed
-//     const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
-//     const resolvedPath = path.resolve(localImagePath);
+  //   const deletionPromises = imageArray.map(imagePath => {
+  //     // Convert to local path if needed
+  //     const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
+  //     const resolvedPath = path.resolve(localImagePath);
 
-//     return new Promise<void>((resolve, reject) => {
-//       fs.unlink(resolvedPath, (err) => {
-//         if (err) {
-//           reject(`Failed to delete: ${resolvedPath} - ${err.message}`);
-//         } else {
-//           resolve();
-//         }
-//       });
-//     });
-//   });
+  //     return new Promise<void>((resolve, reject) => {
+  //       fs.unlink(resolvedPath, (err) => {
+  //         if (err) {
+  //           reject(`Failed to delete: ${resolvedPath} - ${err.message}`);
+  //         } else {
+  //           resolve();
+  //         }
+  //       });
+  //     });
+  //   });
 
-//   const results = await Promise.allSettled(deletionPromises);
+  //   const results = await Promise.allSettled(deletionPromises);
 
-//   const failedMessages = results
-//     .filter(result => result.status === 'rejected')
-//     .map(result => (result as PromiseRejectedResult).reason);
+  //   const failedMessages = results
+  //     .filter(result => result.status === 'rejected')
+  //     .map(result => (result as PromiseRejectedResult).reason);
 
-//   if (failedMessages.length > 0) {
-//     return { message: `Failed to delete image(s):\n${failedMessages.join('\n')}` };
-//   }
+  //   if (failedMessages.length > 0) {
+  //     return { message: `Failed to delete image(s):\n${failedMessages.join('\n')}` };
+  //   }
 
-//   return { message: 'Successfully deleted all images.' };
-// }
+  //   return { message: 'Successfully deleted all images.' };
+  // }
 
 
 }
