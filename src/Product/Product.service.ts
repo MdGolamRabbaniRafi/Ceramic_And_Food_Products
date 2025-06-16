@@ -410,26 +410,27 @@ export class ProductService {
     }
   }
 
-  async deleteProduct(id: number): Promise<{ message: string }> {
+  async deleteProduct(id: number): Promise<{ message: string } | any> {
     const product = await this.productRepo.findOne({ where: { Id: id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    if (product.image) {
-      const imageArray = product.image.split(',')
-      imageArray.forEach(async img => {
-        const res = await this.deleteImageFile(img);
-        console.log(product.image);
-        if (res.message != "File deleted successfully") {
-          return res;
-        }
-        else {
-          return res;
-        }
-      });
+    // if (product.image) {
+    const imageArray = product.image.split(',')
+    imageArray.forEach(async img => {
+      const res = await this.deleteImageFile(img);
+      console.log(product.image);
+      if (res.message != "File deleted successfully") {
+        return res;
+      }
+      else {
+        return res;
+      }
+    });
 
-    }
+    // }
+    return imageArray;
     return { message: "deleting..." };
 
 

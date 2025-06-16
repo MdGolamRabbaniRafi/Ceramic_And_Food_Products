@@ -117,7 +117,7 @@ export class ProductController {
     // Use the base URL for image paths
     const urls = files.map(file => {
 
-    let imageBaseUrl = process.env.Product_Image_Destination;
+      let imageBaseUrl = process.env.Product_Image_Destination;
 
       imageBaseUrl = `${imageBaseUrl}${file.filename}`;
 
@@ -194,7 +194,7 @@ export class ProductController {
     // Use the base URL for image paths
     const urls = files.map(file => {
 
-    let imageBaseUrl = process.env.Product_Image_Destination;
+      let imageBaseUrl = process.env.Product_Image_Destination;
 
       imageBaseUrl = `${imageBaseUrl}${file.filename}`;
       const trimmedPath = imageBaseUrl.replace(process.env.Host_path, '');
@@ -233,7 +233,7 @@ export class ProductController {
 
 
   @Delete('/delete/:id')
-  async deleteProduct(@Param('id', ParseIntPipe) id: number): Promise<{message:string}> {
+  async deleteProduct(@Param('id', ParseIntPipe) id: number): Promise<{ message: string } | any> {
     return await this.productService.deleteProduct(id);
   }
 }
