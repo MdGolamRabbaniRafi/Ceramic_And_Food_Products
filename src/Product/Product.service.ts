@@ -431,7 +431,7 @@ export class ProductService {
 
     // }
     // return imageArray;
-    return { message: "deleting..." };
+    // return { message: "deleting..." };
 
 
     // try {
