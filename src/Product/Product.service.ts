@@ -456,7 +456,7 @@ export class ProductService {
     const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
 
     // Get upload path from .env
-    let uploadDir = process.env.Auth_Image_Destination || '';
+    let uploadDir = process.env.Product_Image_Destination || '';
 
     // If in production and image path starts with Host_url, convert URL to local path
     if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
