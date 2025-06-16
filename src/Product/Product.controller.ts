@@ -222,7 +222,9 @@ export class ProductController {
 
       // date: new Date(),
       json_attribute: req.body.json_attribute,
-      category: { Id: req.body.categoryId } as CategoryEntity,
+      ...(req.body.categoryId && {
+        category: { Id: req.body.categoryId } as CategoryEntity,
+      }), 
       image: files.length > 0
         ? imageUrls
         : undefined,  // Only update the image if new files are uploaded
