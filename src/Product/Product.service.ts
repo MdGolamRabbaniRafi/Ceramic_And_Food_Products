@@ -410,40 +410,39 @@ export class ProductService {
     }
   }
 
-  async deleteProduct(id: number): Promise<{ message: string } | any> {
+  async deleteProduct(id: number): Promise<{ message: string }> {
     const product = await this.productRepo.findOne({ where: { Id: id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    // if (product.image) {
-    let response = "";
-    const imageArray = product.image.split(',')
-    imageArray.forEach(async img => {
-      const res = await this.deleteImageFile(img);
-      console.log(product.image);
-      if (res.message != "File deleted successfully") {
-        response = res.message;
+    if (product.image) {
+      const imageArray = product.image.split(',').map(img => img.trim());
+
+      const deletionResults = await Promise.all(
+        imageArray.map(img => this.deleteImageFile(img))
+      );
+
+      const failedDeletions = deletionResults.filter(
+        res => res.message !== 'File deleted successfully'
+      );
+
+      if (failedDeletions.length > 0) {
+        // Prevent deletion and report which images failed
+        const failedMessages = failedDeletions.map(res => res.message).join('; ');
+        return { message: `Product deletion aborted: ${failedMessages}` };
       }
-      else {
-        response = res.message;
-      }
-    });
-    return response;
+    }
 
-    // }
-    // return imageArray;
-    // return { message: "deleting..." };
-
-
-    // try {
-    //   await this.productRepo.delete(id);
-    //   return { message: "Product removed successfully" };
-    // } catch (error) {
-    //   console.error("Error removing product:", error.message);
-    //   throw new InternalServerErrorException('Error removing product');
-    // }
+    try {
+      await this.productRepo.delete(id);
+      return { message: "Product removed successfully" };
+    } catch (error) {
+      console.error("Error removing product:", error.message);
+      throw new InternalServerErrorException('Error removing product');
+    }
   }
+
 
   async deleteImageFile(imagePath: string): Promise<{ message: string }> {
     console.log("imagePath", imagePath);

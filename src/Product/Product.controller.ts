@@ -233,7 +233,7 @@ export class ProductController {
 
 
   @Delete('/delete/:id')
-  async deleteProduct(@Param('id', ParseIntPipe) id: number): Promise<{ message: string } | any> {
+  async deleteProduct(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return await this.productService.deleteProduct(id);
   }
 }
