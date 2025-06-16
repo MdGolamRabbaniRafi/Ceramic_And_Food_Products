@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import { Repository } from 'typeorm';
 import { ProductEntity } from './Product.entity';
@@ -315,12 +315,18 @@ export class ProductService {
       {
       }
       if (productData.image && product.image !== productData.image) {
-       const res= await this.deleteImageFiles(product.image);
-        if(res.message!="Successfully deleted all images.")
-        {
-          return res;
+  if (product.image) {
+      const imageArray = product.image.split(',')
+      imageArray.forEach(async img => {
+      const res = await this.deleteImageFile(img);
+      console.log(product.image);
+      if(res.message!="Successfully deleted all images.")
+      {
+        return res;
+      }
+      });
 
-        }
+    }
       }
 
       if (productData.name != null && typeof productData.name !== 'string') {
@@ -412,12 +418,16 @@ export class ProductService {
     }
 
     if (product.image) {
-      const res = await this.deleteImageFiles(product.image);
+      const imageArray = product.image.split(',')
+      imageArray.forEach(async img => {
+      const res = await this.deleteImageFile(img);
       console.log(product.image);
       if(res.message!="Successfully deleted all images.")
       {
         return res;
       }
+      });
+
     }
     
 
@@ -429,37 +439,90 @@ export class ProductService {
       throw new InternalServerErrorException('Error removing product');
     }
   }
-private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
-  const imageArray = imagePaths.split(',').map(image => image.trim());
-
-  const deletionPromises = imageArray.map(imagePath => {
-    // Convert to local path if needed
-    const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
-    const resolvedPath = path.resolve(localImagePath);
-
-    return new Promise<void>((resolve, reject) => {
-      fs.unlink(resolvedPath, (err) => {
-        if (err) {
-          reject(`Failed to delete: ${resolvedPath} - ${err.message}`);
-        } else {
-          resolve();
-        }
-      });
-    });
-  });
-
-  const results = await Promise.allSettled(deletionPromises);
-
-  const failedMessages = results
-    .filter(result => result.status === 'rejected')
-    .map(result => (result as PromiseRejectedResult).reason);
-
-  if (failedMessages.length > 0) {
-    return { message: `Failed to delete image(s):\n${failedMessages.join('\n')}` };
+  
+  async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+    if (!imagePath) {
+      return { message: 'No image path provided' };
+    }
+  
+    // Normalize incorrect slashes
+    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+      imagePath = imagePath.replace('https:/', 'https://');
+    }
+  
+    // Extract filename from URL
+    const fileName = path.basename(imagePath);
+    console.log("basename:", fileName);
+  
+    // Determine environment
+    const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+  
+    // Get upload path from .env
+    let uploadDir = process.env.Auth_Image_Destination || '';
+  
+    // If in production and image path starts with Host_url, convert URL to local path
+    if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+      uploadDir = process.env.Host_path
+        ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
+        : uploadDir;
+    }
+  
+    // Construct local file path
+    const localImagePath = path.join(uploadDir, fileName);
+    console.log("Resolved path for deletion:", localImagePath);
+  
+    // Check if file exists
+    try {
+      await fs.access(localImagePath);
+    } catch (err) {
+      console.error("File not found:", localImagePath);
+      return { message: 'File not found' };
+    }
+  
+    // Attempt deletion
+    try {
+      await fs.unlink(localImagePath);
+      console.log("File deleted:", fileName);
+      return { message: 'File deleted successfully' };
+    } catch (err) {
+      console.error("Failed to delete:", localImagePath, err);
+      return { message: 'Failed to delete file' };
+    }
   }
 
-  return { message: 'Successfully deleted all images.' };
-}
+
+
+// private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
+//   const imageArray = imagePaths.split(',').map(image => image.trim());
+
+//   const deletionPromises = imageArray.map(imagePath => {
+//     // Convert to local path if needed
+//     const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
+//     const resolvedPath = path.resolve(localImagePath);
+
+//     return new Promise<void>((resolve, reject) => {
+//       fs.unlink(resolvedPath, (err) => {
+//         if (err) {
+//           reject(`Failed to delete: ${resolvedPath} - ${err.message}`);
+//         } else {
+//           resolve();
+//         }
+//       });
+//     });
+//   });
+
+//   const results = await Promise.allSettled(deletionPromises);
+
+//   const failedMessages = results
+//     .filter(result => result.status === 'rejected')
+//     .map(result => (result as PromiseRejectedResult).reason);
+
+//   if (failedMessages.length > 0) {
+//     return { message: `Failed to delete image(s):\n${failedMessages.join('\n')}` };
+//   }
+
+//   return { message: 'Successfully deleted all images.' };
+// }
 
 
 }

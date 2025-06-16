@@ -1,10 +1,7 @@
-// import { Role } from "src/auth/Role/Role.enum";
-import { TokenEntity } from "src/Auth/token/Token.entity";
 import { CartEntity } from "src/Cart/Cart.entity";
-// import { Message } from "src/Real Time Chat/message.entity";
 import { ReviewRatingEntity } from "src/Review And Rating/ReviewRating.entity";
 import { WishListEntity } from "src/WishList/WishList.entity";
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("User")
 export class UserEntity {
@@ -46,11 +43,5 @@ export class UserEntity {
 
   @OneToMany(() => WishListEntity, wishlist => wishlist.user)
   wishlist: WishListEntity[];
-  // @OneToMany(() => TokenEntity, token => token.user)
-  // token: TokenEntity[];
-  // @OneToMany(() => Message, message => message.sender)
-  // sentMessages: Message[];
 
-  // @OneToMany(() => Message, message => message.receiver)
-  // receivedMessages: Message[];
 }
