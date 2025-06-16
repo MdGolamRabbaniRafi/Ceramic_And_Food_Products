@@ -474,7 +474,6 @@ export class ProductService {
     // Construct local file path
     const localImagePath = path.join(uploadDir, fileName);
     console.log("Resolved path for deletion:", localImagePath);
-    return{message:localImagePath}
 
     // Check if file exists
     try {
