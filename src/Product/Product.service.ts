@@ -316,7 +316,7 @@ export class ProductService {
       }
       if (productData.image && product.image !== productData.image) {
        const res= await this.deleteImageFiles(product.image);
-        if(res.message!="Successfully deleted image")
+        if(res.message!="Successfully deleted all images.")
         {
           return res;
 
@@ -414,7 +414,7 @@ export class ProductService {
     if (product.image) {
       const res = await this.deleteImageFiles(product.image);
       console.log(product.image);
-      if(res.message!="Successfully deleted image")
+      if(res.message!="Successfully deleted all images.")
       {
         return res;
       }
@@ -429,33 +429,34 @@ export class ProductService {
       throw new InternalServerErrorException('Error removing product');
     }
   }
+private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
+  const imageArray = imagePaths.split(',').map(image => image.trim());
 
-  private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
-    const imageArray = imagePaths.split(',').map(image => image.trim());
+  const deletionPromises = imageArray.map(imagePath => {
+    // Convert to local path if needed
+    const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
+    const resolvedPath = path.resolve(localImagePath);
 
-    imageArray.forEach(imagePath => {
-      let localImagePath: string;
-      localImagePath = imagePath;
-        // console.log("localImagePath before",localImagePath)
-
-      //  if (process.env.NODE_ENV === 'production') {
-      localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
-      //  }
-
-      const resolvedPath = path.resolve(localImagePath);
-        // console.log("localImagePath ",localImagePath)
-
-      // Attempt to delete the image file from the server
+    // Return a Promise that resolves if file is deleted or rejects if failed
+    return new Promise<void>((resolve, reject) => {
       fs.unlink(resolvedPath, (err) => {
-        if (err) {
-          return { message: `Failed to delete image: ${resolvedPath}` }
-
-        }
+        if (err) reject(new Error(`Failed to delete: ${resolvedPath}`));
+        else resolve();
       });
     });
-    return { message: `Successfully deleted image` }
+  });
 
+  const results = await Promise.allSettled(deletionPromises);
+
+  const hasFailure = results.some(result => result.status === 'rejected');
+
+  if (hasFailure) {
+    return { message: 'Failed to delete one or more images.' };
   }
+
+  return { message: 'Successfully deleted all images.' };
+}
+
 }
 type JsonAttribute = {
   attributes: {
