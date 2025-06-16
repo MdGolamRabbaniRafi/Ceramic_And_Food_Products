@@ -27,11 +27,11 @@ export class CategoryController {
   async editCategory(
     @Param('id', ParseIntPipe) Id: number,
     @Body() categoryData: Partial<CategoryEntity>
-  ): Promise<boolean> {
+  ): Promise<{message:string}> {
     return await this.categoryService.editCategory(Id, categoryData);
   }
   @Delete('/delete/:id')
-  async deleteCategory(@Param('id', ParseIntPipe) Id: number): Promise<boolean> {
+  async deleteCategory(@Param('id', ParseIntPipe) Id: number): Promise<{message:string}> {
     return await this.categoryService.deleteCategory(Id);
   }
 }

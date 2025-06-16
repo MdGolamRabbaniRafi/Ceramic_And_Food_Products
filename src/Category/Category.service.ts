@@ -12,12 +12,12 @@ export class CategoryService {
   getHello(): string {
     return 'Hello Order!';
   }
-  async findById(id: number): Promise<CategoryEntity | null> {
+  async findById(id: number): Promise<CategoryEntity | {message:string}> {
     let categoryEntity = await this.categoryRepo.findOne({ where: { Id: id } });
     if (categoryEntity != null) {
       return categoryEntity;
     }
-    return null;
+    return {message:"Not found"};
   }
   async findAll(): Promise<any[]> {
     let categoryEntities = await this.categoryRepo.find();
@@ -35,25 +35,25 @@ export class CategoryService {
     }
     return {message:"Category not added"};
   }
-  async editCategory(id: number, categoryData: Partial<CategoryEntity>): Promise<boolean> {
+  async editCategory(id: number, categoryData: Partial<CategoryEntity>): Promise<{message:string}> {
     const existingCategory = await this.categoryRepo.findOne({ where: { Id: id } });
   
     if (!existingCategory) {
-      return false; // Category not found
+      return {message:"Category not found"}; // Category not found
     }
   
     await this.categoryRepo.update(id, categoryData);
-    return true;
+      return {message:"Category updated successfully"}; // Category not found
   }
-  async deleteCategory(id: number): Promise<boolean> {
+  async deleteCategory(id: number): Promise<{message:string}> {
     const existingCategory = await this.categoryRepo.findOne({ where: { Id: id } });
   
     if (!existingCategory) {
-      return false; // Category not found
+      return {message:"Category not found"}; // Category not found
     }
   
     await this.categoryRepo.delete(id);
-    return true;
+      return {message:"Category deleted successfully"}; // Category not found
   }
   
 

@@ -1,17 +1,16 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ProductEntity } from './Product.entity';
-import { DiscountEntity } from './Discount/Discount.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Repository } from 'typeorm';
+import { ProductEntity } from './Product.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(ProductEntity)
     private productRepo: Repository<ProductEntity>,
-  ) {}
+  ) { }
 
   getHello(): string {
     return 'Hello Product!';
@@ -23,96 +22,96 @@ export class ProductService {
     return parseFloat((price - discountAmount).toFixed(2)); // Round to 2 decimal places
   }
   async SearchByID(Id: number): Promise<any | null> {
-    let productEntity = await this.productRepo.findOne({ 
-      where: { Id }, 
-      relations: ['discount'] 
+    let productEntity = await this.productRepo.findOne({
+      where: { Id },
+      relations: ['discount']
     });
 
     if (!productEntity) {
-        return null;
+      return null;
     }
 
     // Ensure image exists and is a string before processing
     if (typeof productEntity.image === 'string') {
-        console.log("Before Replacement:", productEntity.image);
+      console.log("Before Replacement:", productEntity.image);
 
-        // Step 1: Split into an array
-        const imageArray = productEntity.image.split(',');
+      // Step 1: Split into an array
+      const imageArray = productEntity.image.split(',');
 
-        // Step 2: Replace the base path and remove "$" symbols if present
-        const updatedImageArray = imageArray.map(imgPath =>
-            imgPath.replace('$', '').replace('/home/farseit1/public_html', 'https://farseit.com')
-        );
+      // Step 2: Replace the base path and remove "$" symbols if present
+      const updatedImageArray = imageArray.map(imgPath =>
+        imgPath.replace('$', '').replace(process.env.Host_path, process.env.Host_url)
+      );
 
-        // Step 3: Assign the updated image array to productEntity
-        productEntity.image = updatedImageArray.toString();  // Store the updated array
+      // Step 3: Assign the updated image array to productEntity
+      productEntity.image = updatedImageArray.toString();  // Store the updated array
 
-        console.log("After Replacement:", productEntity.image);
+      console.log("After Replacement:", productEntity.image);
     }
 
     // Check if there is a discount and calculate the discounted price
     if (productEntity.discount) {
-        const discountedPrice = this.calculateDiscountedPrice(
-            productEntity.price, 
-            productEntity.discount.discountPercentage
-        );
-        productEntity['discountedPrice'] = discountedPrice;
+      const discountedPrice = this.calculateDiscountedPrice(
+        productEntity.price,
+        productEntity.discount.discountPercentage
+      );
+      productEntity['discountedPrice'] = discountedPrice;
     }
 
     // Return the product entity with the updated image array
     return {
-        ...productEntity,  // Spread the product entity to return all its fields
-        ImagePath: productEntity.image.split(',')  // Add the updated image array separately
+      ...productEntity,  // Spread the product entity to return all its fields
+      ImagePath: productEntity.image.split(',')  // Add the updated image array separately
     };
-}
+  }
 
 
 
 
-// async SearchByID(Id: number): Promise<ProductEntity | null> {
-//   let productEntity = await this.productRepo.findOne({ 
-//     where: { Id }, 
-//     relations: ['discount'] 
-//   });
+  // async SearchByID(Id: number): Promise<ProductEntity | null> {
+  //   let productEntity = await this.productRepo.findOne({ 
+  //     where: { Id }, 
+  //     relations: ['discount'] 
+  //   });
 
-//   if (!productEntity) {
-//       return null;
-//   }
+  //   if (!productEntity) {
+  //       return null;
+  //   }
 
-//   // Ensure image exists and is a string before processing
-//   if (typeof productEntity.image === 'string') {
-//       console.log("Before Replacement:", productEntity.image);
+  //   // Ensure image exists and is a string before processing
+  //   if (typeof productEntity.image === 'string') {
+  //       console.log("Before Replacement:", productEntity.image);
 
-//       // Step 1: Split into an array
-//       const imageArray = productEntity.image.split(',');
+  //       // Step 1: Split into an array
+  //       const imageArray = productEntity.image.split(',');
 
-//       // Step 2: Replace the base path and remove "$" symbols if present
-//       const updatedImageArray = imageArray.map(imgPath =>
-//           imgPath.replace('$', '').replace('/home/farseit1/public_html', 'https://farseit.com')
-//       );
+  //       // Step 2: Replace the base path and remove "$" symbols if present
+  //       const updatedImageArray = imageArray.map(imgPath =>
+  //           imgPath.replace('$', '').replace('/home/farseit1/public_html', 'https://farseit.com')
+  //       );
 
-//       // Step 3: Push updated image paths back to productEntity.image array
-//       productEntity.image = updatedImageArray[1];  // Update the image array with the modified paths
-//       console.log("After Replacement:", productEntity.image);
-//   }
+  //       // Step 3: Push updated image paths back to productEntity.image array
+  //       productEntity.image = updatedImageArray[1];  // Update the image array with the modified paths
+  //       console.log("After Replacement:", productEntity.image);
+  //   }
 
-//   // Check if there is a discount and calculate the discounted price
-//   if (productEntity.discount) {
-//       const discountedPrice = this.calculateDiscountedPrice(
-//           productEntity.price, 
-//           productEntity.discount.discountPercentage
-//       );
-//       productEntity['discountedPrice'] = discountedPrice;
-//   }
+  //   // Check if there is a discount and calculate the discounted price
+  //   if (productEntity.discount) {
+  //       const discountedPrice = this.calculateDiscountedPrice(
+  //           productEntity.price, 
+  //           productEntity.discount.discountPercentage
+  //       );
+  //       productEntity['discountedPrice'] = discountedPrice;
+  //   }
 
-//   // Return the product entity with updated image array
-//   return productEntity;
-// }
+  //   // Return the product entity with updated image array
+  //   return productEntity;
+  // }
 
-  
-  
-  
-  
+
+
+
+
   async SearchByIDWithoutDiscount(Id: number): Promise<ProductEntity | null> {
     let productEntity = await this.productRepo.findOne({ where: { Id }, relations: ['discount'] });
 
@@ -142,10 +141,10 @@ export class ProductService {
         if (typeof product.image === 'string') {
           // Convert the string to an array, process it, and convert it back to a string
           product.image = product.image
-              .split(',') // Split by comma if multiple images are stored as a string
-              .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
-              .join(','); // Join back into a string
-      }
+            .split(',') // Split by comma if multiple images are stored as a string
+            .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
+            .join(','); // Join back into a string
+        }
         if (product.discount) {
           const discountedPrice = this.calculateDiscountedPrice(product.price, product.discount.discountPercentage);
           product['discountedPrice'] = discountedPrice;
@@ -168,10 +167,10 @@ export class ProductService {
         if (typeof product.image === 'string') {
           // Convert the string to an array, process it, and convert it back to a string
           product.image = product.image
-              .split(',') // Split by comma if multiple images are stored as a string
-              .map(imgPath => imgPath.replace('/home/farseit1/public_html', 'https://farseit.com'))
-              .join(','); // Join back into a string
-      }
+            .split(',') // Split by comma if multiple images are stored as a string
+            .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
+            .join(','); // Join back into a string
+        }
         if (product.discount) {
           const discountedPrice = this.calculateDiscountedPrice(product.price, product.discount.discountPercentage);
           product['discountedPrice'] = discountedPrice;
@@ -191,70 +190,70 @@ export class ProductService {
       if (!productData.image || typeof productData.image !== 'string') {
         throw new BadRequestException('The image field is required and must be a string.');
       }
-  
+
       if (!productData.name || typeof productData.name !== 'string') {
         throw new BadRequestException('The name field is required and must be a string.');
       }
-  
+
       if (!productData.desc || typeof productData.desc !== 'string') {
         throw new BadRequestException('The desc field is required and must be a string.');
       }
 
-  
-      if (Number.isNaN(productData.price)||productData.price == null || typeof productData.price !== 'number' || productData.price < 0) {
+
+      if (Number.isNaN(productData.price) || productData.price == null || typeof productData.price !== 'number' || productData.price < 0) {
         throw new BadRequestException('The price field is required and must be a positive number.');
       }
-  
+
       if (productData.quantity == null || typeof productData.quantity !== 'number' || productData.quantity < 0) {
         throw new BadRequestException('The quantity field is required and must be a non-negative integer.');
       }
-  
+
       if (typeof productData.json_attribute === 'string') {
         productData.json_attribute = JSON.parse(productData.json_attribute) as JsonAttribute;
       }
-  
+
       if (productData.json_attribute && typeof productData.json_attribute === 'object') {
         const attributes = (productData.json_attribute as JsonAttribute).attributes;
-  
+
         if (!attributes || typeof attributes !== 'object') {
           throw new BadRequestException('Invalid attribute structure.');
         }
-  
+
         let quantityMismatch = false;
         let mismatchAttribute: string | null = null;
-  
+
         for (const [key, value] of Object.entries(attributes)) {
           if (typeof value !== 'object') {
             throw new BadRequestException(`Invalid attribute values for "${key}".`);
           }
-  
-  
+
+
           let attributeTotal = 0;
-  
+
           for (const qty of Object.values(value)) {
             if (typeof qty !== 'number' || qty < 0) {
               throw new BadRequestException(`Invalid quantity in attribute "${key}".`);
             }
-            attributeTotal += qty;  
+            attributeTotal += qty;
           }
-  
-            if (attributeTotal != productData.quantity) {
+
+          if (attributeTotal != productData.quantity) {
             quantityMismatch = true;
-            mismatchAttribute = key;  
+            mismatchAttribute = key;
             break;
           }
-  
+
         }
-          if (quantityMismatch) {
+        if (quantityMismatch) {
           throw new BadRequestException(
-            "The total quantity for "+mismatchAttribute+" does not match the original quantity "+productData.quantity+"."
+            "The total quantity for " + mismatchAttribute + " does not match the original quantity " + productData.quantity + "."
           );
         }
-  
+
       }
-  
+
       const productDetails = await this.productRepo.save(productData);
-  
+
       if (productDetails != null) {
         return productDetails;
       }
@@ -262,173 +261,200 @@ export class ProductService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-  
+
       console.error('Error saving product details:', error.message);
       throw new InternalServerErrorException('Error saving product details');
     }
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
 
   async updateProductQuantity(product: Partial<ProductEntity>): Promise<void> {
     if (product.quantity === undefined || product.json_attribute === undefined) {
       throw new Error('Quantity or JSON attribute not defined.');
     }
-  
+
     const productRepo = this.productRepo;
-  
+
     // Ensure valid update values are provided before calling .set()
     const updatedValues: any = {
       quantity: product.quantity,
       json_attribute: product.json_attribute,
     };
-  
+
     await productRepo.createQueryBuilder()
       .update(ProductEntity)
       .set(updatedValues) // Pass the values to update
       .where("Id = :Id", { Id: product.Id }) // Use named parameter
       .execute();
   }
-  
-  
 
 
-  
-  
-  async editProduct(id: number, productData: Partial<ProductEntity>): Promise<ProductEntity> {
+
+
+
+
+  async editProduct(id: number, productData: Partial<ProductEntity>): Promise<ProductEntity | { message: string }> {
     const product = await this.productRepo.findOne({ where: { Id: id } });
     if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      return { message: `Product with ID ${id} not found` };
     }
 
 
     try {
-      if (productData.image!=null && typeof productData.image !== 'string') {
-        throw new BadRequestException('The image field is required and must be a string.');
+      if (productData.image != null && typeof productData.image !== 'string')
+        return { message: `The image field is required and must be a string.` };
+      {
       }
       if (productData.image && product.image !== productData.image) {
-        await this.deleteImageFiles(product.image);
+       const res= await this.deleteImageFiles(product.image);
+        if(res.message!="Successfully deleted image")
+        {
+          return res;
+
+        }
       }
-  
-      if (productData.name!=null && typeof productData.name !== 'string') {
-        throw new BadRequestException('The name field is required and must be a string.');
+
+      if (productData.name != null && typeof productData.name !== 'string') {
+        return { message: `The name field is required and must be a string.` };
       }
-  
-      if (productData.desc!=null && typeof productData.desc !== 'string') {
-        throw new BadRequestException('The desc field is required and must be a string.');
+
+      if (productData.desc != null && typeof productData.desc !== 'string') {
+        return { message: `The desc field is required and must be a string.` };
+
       }
 
 
-      if (Number.isNaN(productData.price) || typeof productData.price !== 'number' || productData.price < 0) {
-        throw new BadRequestException('The price field is required and must be a positive number.');
+      if (productData.price !== undefined) {
+        if (
+          Number.isNaN(productData.price) ||
+          typeof productData.price !== 'number' ||
+          productData.price < 0
+        ) {
+          return { message: `The price field must be a positive number.` };
+        }
       }
-   //   console.log(typeof productData.quantity);
-  
+
+
+      //   console.log(typeof productData.quantity);
+
       if (productData.quantity != null && typeof productData.quantity !== 'number' || productData.quantity < 0) {
-        throw new BadRequestException('The quantity field is required and must be a non-negative integer.');
+        return { message: `The quantity field is required and must be a non-negative integer..` };
+
       }
-  
+
       if (typeof productData.json_attribute === 'string') {
         productData.json_attribute = JSON.parse(productData.json_attribute) as JsonAttribute;
       }
-  
+
       if (productData.json_attribute && typeof productData.json_attribute === 'object') {
         const attributes = (productData.json_attribute as JsonAttribute).attributes;
-  
+
         if (!attributes || typeof attributes !== 'object') {
-          throw new BadRequestException('Invalid attribute structure.');
+          return { message: `Invalid attribute structure.` };
+
         }
-  
+
         let quantityMismatch = false;
         let mismatchAttribute: string | null = null;
-  
+
         for (const [key, value] of Object.entries(attributes)) {
           if (typeof value !== 'object') {
-            throw new BadRequestException(`Invalid attribute values for "${key}".`);
+            return { message: `Invalid attribute values for "${key}".` };
+
           }
-  
-  
+
+
           let attributeTotal = 0;
-  
+
           for (const qty of Object.values(value)) {
             if (typeof qty !== 'number' || qty < 0) {
-              throw new BadRequestException(`Invalid quantity in attribute "${key}".`);
+              return { message: `Invalid quantity in attribute "${key}".` };
+
             }
-            attributeTotal += qty;  
+            attributeTotal += qty;
           }
-  
-            if (attributeTotal != productData.quantity) {
+
+          if (attributeTotal != product.quantity) {
             quantityMismatch = true;
-            mismatchAttribute = key;  
+            mismatchAttribute = key;
             break;
           }
-  
+
         }
-          if (quantityMismatch) {
-          throw new BadRequestException(
-            "The total quantity for "+mismatchAttribute+" does not match the original quantity "+productData.quantity+"."
-          );
+        if (quantityMismatch) {
+          return { message: "The total quantity for " + mismatchAttribute + " does not match the original quantity " + product.quantity + "." };
+
         }
-  
+
       }
-      
+
       await this.productRepo.update(id, productData);
       return await this.productRepo.findOne({ where: { Id: id } });
     } catch (error) {
       console.error("Error editing product details:", error.message);
-      throw new InternalServerErrorException('Error editing product details');
+      return{message:"Error editing product details"}
     }
   }
 
-  async deleteProduct(id: number): Promise<boolean> {
+  async deleteProduct(id: number): Promise<{message:string}> {
     const product = await this.productRepo.findOne({ where: { Id: id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
     if (product.image) {
-      await this.deleteImageFiles(product.image);
+      const res = await this.deleteImageFiles(product.image);
+      console.log(product.image);
+      if(res.message!="Successfully deleted image")
+      {
+        return res;
+      }
     }
+    
 
     try {
-      await this.productRepo.remove(product);
-      return true;
+     await this.productRepo.delete(id);
+      return {message:"Product removed successfully"};
     } catch (error) {
       console.error("Error removing product:", error.message);
       throw new InternalServerErrorException('Error removing product');
     }
   }
 
-  private deleteImageFiles(imagePaths: string): void {
+  private async deleteImageFiles(imagePaths: string): Promise<{ message: string }> {
     const imageArray = imagePaths.split(',').map(image => image.trim());
 
     imageArray.forEach(imagePath => {
       let localImagePath: string;
       localImagePath = imagePath;
+        // console.log("localImagePath before",localImagePath)
 
-    //  if (process.env.NODE_ENV === 'production') {
-        localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
-    //  }
+      //  if (process.env.NODE_ENV === 'production') {
+      localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
+      //  }
 
       const resolvedPath = path.resolve(localImagePath);
+        // console.log("localImagePath ",localImagePath)
 
       // Attempt to delete the image file from the server
       fs.unlink(resolvedPath, (err) => {
         if (err) {
-          console.error(`Failed to delete image: ${resolvedPath}`, err);
-        } else {
-          console.log(`Successfully deleted image: ${resolvedPath}`);
+          return { message: `Failed to delete image: ${resolvedPath}` }
+
         }
       });
     });
+    return { message: `Successfully deleted image` }
+
   }
 }
 type JsonAttribute = {
