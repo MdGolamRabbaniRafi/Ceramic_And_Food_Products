@@ -418,8 +418,8 @@ export class ProductService {
 
     // if (product.image) {
     const imageArray = product.image.split(',')
-    imageArray.forEach(async img => {
-      const res = await this.deleteImageFile(img);
+    // imageArray.forEach(async img => {
+      const res = await this.deleteImageFile(imageArray[0]);
       console.log(product.image);
       if (res.message != "File deleted successfully") {
         return res;
@@ -427,7 +427,7 @@ export class ProductService {
       else {
         return res;
       }
-    });
+    // });
 
     // }
     return imageArray;
