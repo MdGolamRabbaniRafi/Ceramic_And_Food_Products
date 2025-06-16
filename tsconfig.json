@@ -16,6 +16,21 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "types": [
+      "node",
+      "express",
+      "multer"
+    ], // <--- add this
+    "typeRoots": [
+      "node_modules/@types"
+    ] // <--- add this
+  },
+  "include": [
+    "src/**/*.ts"
+  ], // usually good to have
+  "exclude": [
+    "node_modules",
+    "dist"
+  ] // exclude these folders
 }
