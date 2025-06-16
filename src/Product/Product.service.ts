@@ -417,17 +417,19 @@ export class ProductService {
     }
 
     // if (product.image) {
+    let response = "";
     const imageArray = product.image.split(',')
     imageArray.forEach(async img => {
       const res = await this.deleteImageFile(img);
       console.log(product.image);
       if (res.message != "File deleted successfully") {
-        return res;
+        response = res.message;
       }
       else {
-        return res;
+        response = res.message;
       }
     });
+    return response;
 
     // }
     // return imageArray;
