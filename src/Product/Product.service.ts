@@ -424,21 +424,26 @@ export class ProductService {
         if (res.message != "File deleted successfully") {
           return res;
         }
+        else {
+          return res;
+        }
       });
 
     }
+    return { message: "deleting..." };
 
 
-    try {
-      await this.productRepo.delete(id);
-      return { message: "Product removed successfully" };
-    } catch (error) {
-      console.error("Error removing product:", error.message);
-      throw new InternalServerErrorException('Error removing product');
-    }
+    // try {
+    //   await this.productRepo.delete(id);
+    //   return { message: "Product removed successfully" };
+    // } catch (error) {
+    //   console.error("Error removing product:", error.message);
+    //   throw new InternalServerErrorException('Error removing product');
+    // }
   }
 
   async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+    console.log("imagePath", imagePath);
     if (!imagePath) {
       return { message: 'No image path provided' };
     }
