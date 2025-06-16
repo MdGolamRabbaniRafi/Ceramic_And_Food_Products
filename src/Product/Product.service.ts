@@ -437,25 +437,30 @@ private async deleteImageFiles(imagePaths: string): Promise<{ message: string }>
     const localImagePath = imagePath.replace(process.env.Host_path, process.env.Host_url);
     const resolvedPath = path.resolve(localImagePath);
 
-    // Return a Promise that resolves if file is deleted or rejects if failed
     return new Promise<void>((resolve, reject) => {
       fs.unlink(resolvedPath, (err) => {
-        if (err) reject(new Error(`Failed to delete: ${resolvedPath}`));
-        else resolve();
+        if (err) {
+          reject(`Failed to delete: ${resolvedPath} - ${err.message}`);
+        } else {
+          resolve();
+        }
       });
     });
   });
 
   const results = await Promise.allSettled(deletionPromises);
 
-  const hasFailure = results.some(result => result.status === 'rejected');
+  const failedMessages = results
+    .filter(result => result.status === 'rejected')
+    .map(result => (result as PromiseRejectedResult).reason);
 
-  if (hasFailure) {
-    return { message: 'Failed to delete one or more images.' };
+  if (failedMessages.length > 0) {
+    return { message: `Failed to delete image(s):\n${failedMessages.join('\n')}` };
   }
 
   return { message: 'Successfully deleted all images.' };
 }
+
 
 }
 type JsonAttribute = {
