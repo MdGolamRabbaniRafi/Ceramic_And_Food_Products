@@ -1,18 +1,16 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Req, UseGuards,Request, Put, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
-import { UserEntity } from './User.entity';
-import { UserService } from './User.service';
-import { Request as ExpressRequest } from 'express';
-import { Roles } from 'src/Auth/Role/Roles.decorate';
-import { AuthGuard } from '@nestjs/passport';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, MulterError } from 'multer';
 import { extname, resolve } from 'path';
-import { Role } from 'src/Auth/Role/Role.enum';
 import { JwtGaurd } from 'src/Auth/Gaurds/jwt-auth.gaurd';
+import { Role } from 'src/Auth/Role/Role.enum';
+import { Roles } from 'src/Auth/Role/Roles.decorate';
 import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
+import { UserEntity } from './User.entity';
+import { UserService } from './User.service';
 @Controller('User')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get()
   getHello(): string {
@@ -20,12 +18,12 @@ export class UserController {
   }
 
   @Roles(Role.User)
-//   //@UseGuards(jwtGaurd,RolesGaurd)
-  @UseGuards(JwtGaurd,RolesGaurd)
+  //   //@UseGuards(jwtGaurd,RolesGaurd)
+  @UseGuards(JwtGaurd, RolesGaurd)
   @Get('/search/:id')
   async SearchByID(@Param('id', ParseIntPipe) Id: number, @Request() req): Promise<null | UserEntity> {
-      console.log(req.headers['authorization']); // To see if the token is present
-      return await this.userService.SearchByID(Id);
+    console.log(req.headers['authorization']); // To see if the token is present
+    return await this.userService.SearchByID(Id);
   }
   @Put('/profile/edit/:id')
   async EditUserProfile(
@@ -48,7 +46,7 @@ export class UserController {
     limits: { fileSize: 1000000 }, // 100 KB limit
     storage: diskStorage({
       destination: (req, file, cb) => {
-       let urlPath = process.env.Auth_Image_Destination;
+        let urlPath = process.env.Auth_Image_Destination;
 
         // Detect CPanel or similar hosting and convert URL to local directory path dynamically
         if (urlPath.startsWith(process.env.Host_url)) {
@@ -68,12 +66,11 @@ export class UserController {
       }
     })
   }))
-  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number,@UploadedFile() myfile: Express.Multer.File): Promise<{ message: string } |UserEntity>
-  {
+  async ChangeProfilePicture(@Param('id', ParseIntPipe) Id: number, @UploadedFile() myfile: Express.Multer.File): Promise<{ message: string } | UserEntity> {
     let imageUrl = process.env.Auth_Image_Destination;
     imageUrl = `${imageUrl}${myfile.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-        const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === 'production';
     let finalUrl: string;
     if (isProduction) {
       finalUrl = `https://${trimmedPath}`;
@@ -82,32 +79,30 @@ export class UserController {
       finalUrl = trimmedPath;
     }
     const Image = finalUrl;
-    return await this.userService.ChangeProfilePicture(Id,Image);
+    return await this.userService.ChangeProfilePicture(Id, Image);
 
   }
 
 
   @Put('/ChangePassword/:id')
   async ChangePassword(
-    @Param('id',ParseIntPipe) Id:number,
-    @Body() Password:{oldPassword:string,newPassword:string}
-  ): Promise<any>
-  {
-    return await this.userService.ChangePassword(Password,Id);
+    @Param('id', ParseIntPipe) Id: number,
+    @Body() Password: { oldPassword: string, newPassword: string }
+  ): Promise<any> {
+    return await this.userService.ChangePassword(Password, Id);
   }
   @Get('/Search')
-  async Search(): Promise<UserEntity[]|null>
-  {
+  async Search(): Promise<UserEntity[] | null> {
     return await this.userService.getAllUsers();
   }
   @Delete('/delete/:id')
-async deleteUser(@Param('id', ParseIntPipe) Id: number): Promise<{ message: string }> {
-  const deletionResult = await this.userService.deleteUser(Id);
-  if (deletionResult) {
-    return { message: 'User and profile image deleted successfully' };
-  } else {
-    return { message: 'User not found or deletion failed' };
+  async deleteUser(@Param('id', ParseIntPipe) Id: number): Promise<{ message: string }> {
+    const deletionResult = await this.userService.deleteUser(Id);
+    if (deletionResult) {
+      return { message: 'User and profile image deleted successfully' };
+    } else {
+      return { message: 'User not found or deletion failed' };
+    }
   }
-}
 
 }

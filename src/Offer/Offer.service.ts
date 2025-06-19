@@ -2,116 +2,128 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OfferEntity } from './Offer.entity';
-import * as path from 'path'; // Ensure this is imported
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class OfferService {
   constructor(
     @InjectRepository(OfferEntity)
     private readonly offerRepository: Repository<OfferEntity>,
-  ) {}
+  ) { }
 
   async createOffer(data: Partial<OfferEntity>): Promise<OfferEntity> {
     const offer = this.offerRepository.create(data);
     return await this.offerRepository.save(offer);
   }
-  async deleteImageFile(imagePath: string): Promise<boolean> {
-    // Log the received imagePath to see if it is already altered
-    console.log("check1")
+
+  async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+    if (!imagePath) {
+      return { message: 'No image path provided' };
+    }
+
+    // Normalize incorrect slashes
     if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
       imagePath = imagePath.replace('https:/', 'https://');
     }
-    console.log("check2")
 
-    let localImagePath: string = imagePath;
-  
-    // Check for production environment and transform URL to local path
-    if (process.env.NODE_ENV === 'production') {
-      // Ensure imagePath starts with 'https://farseit.com/Upload' before replacing it
-      if (imagePath.startsWith('https://farseit.com/Upload')) {
-        localImagePath = imagePath.replace('https://farseit.com/Upload', '/home/farseit1/public_html/Upload');
-      } else {
-        return false; // If path doesn't match, return false
-      }
+    // Extract filename from URL
+    const fileName = path.basename(imagePath);
+    // console.log("basename:", fileName);
+
+    // Determine environment
+    const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+
+    // Get upload path from .env
+    let uploadDir = process.env.Offer_Image_Destination || '';
+
+    // If in production and image path starts with Host_url, convert URL to local path
+    if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+      uploadDir = process.env.Host_path
+        ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
+        : uploadDir;
     }
-    console.log("check3")
-    console.log(localImagePath);
 
-    // Resolve the absolute file path for the localImagePath
-    const resolvedPath = path.resolve(localImagePath);
-    console.log("check4")
+    // Construct local file path
+    const localImagePath = path.join(uploadDir, fileName);
+    // console.log("Resolved path for deletion:", localImagePath);
 
+    // Check if file exists
     try {
-      // Attempt to delete the image file from the server
-      await fs.promises.unlink(resolvedPath); // Use promises for async handling
-      console.log(`Successfully deleted image: ${resolvedPath}`);
-      return true; // Return true on successful deletion
+      await fs.access(localImagePath);
     } catch (err) {
-      console.error(`Failed to delete image: ${resolvedPath}`, err);
-      return false; // Return false if deletion fails
+      console.error("File not found:", localImagePath);
+      return { message: 'File not found' };
+    }
+
+    // Attempt deletion
+    try {
+      await fs.unlink(localImagePath);
+      console.log("File deleted:", fileName);
+      return { message: 'File deleted successfully' };
+    } catch (err) {
+      console.error("Failed to delete:", localImagePath, err);
+      return { message: 'Failed to delete file' };
     }
   }
-  
+
   async getAllOffers(): Promise<OfferEntity[]> {
     const offers = await this.offerRepository.find();
-    
-    // Replace image paths for each offer
-    offers.forEach(offer => {
-      if (offer.image) { // Assuming `imagePath` is the field where the path is stored
-        offer.image = this.replaceImagePath(offer.image);
-      }
-    });
-  
     return offers;
   }
-  
-   replaceImagePath(imgPath: string): string {
-    return imgPath.replace('$', '').replace('/home/farseit1/public_html', 'https://farseit.com');
-  }
-  
 
-  async getOfferById(id: number): Promise<OfferEntity> {
-    const offer= await this.offerRepository.findOne({ where: { id } });
-    offer.image=this.replaceImagePath(offer.image);
+
+  async getOfferById(id: number): Promise<OfferEntity | { message: string }> {
+    const offer = await this.offerRepository.findOne({ where: { id } });
+    if (!offer) {
+      return { message: "Not found" };
+    }
     return offer;
   }
 
-  async updateOffer(id: number, data: Partial<OfferEntity>): Promise<OfferEntity> {
+
+  async updateOffer(id: number, data: Partial<OfferEntity>): Promise<OfferEntity | { message: string }> {
+    if (data.image !== undefined) {
+      const offer = await this.getOfferById(id);
+
+      if ('message' in offer) {
+        return offer;
+      }
+
+      const check = await this.deleteImageFile(offer.image);
+      if (check.message != "File deleted successfully") {
+        return { message: check.message }
+      }
+    }
+
     await this.offerRepository.update(id, data);
-    return this.getOfferById(id);
+    return await this.getOfferById(id);
   }
 
+
   async deleteOffer(id: number): Promise<{ message: string; success: boolean }> {
-    const offer = await this.offerRepository.findOne({ where: { id: id } });
-  
-    if (!offer) {
-      throw new NotFoundException(`Offer with ID ${id} not found`);
+    const offer = await this.getOfferById(id);
+
+    if ('message' in offer) {
+      return { message: offer.message, success: false }
     }
-  
+
     // Check if image exists and delete it
     if (offer.image) {
       const check = await this.deleteImageFile(offer.image);
-      if(!check)
-      {
-        return{message:'Error removing Offer Image', success:false}
+      if (check.message != "File deleted successfully") {
+        return { message: 'Error removing Offer Image', success: false }
       }
     }
-  
+
     try {
-      // Delete the offer using the id
-      await this.offerRepository.delete(id); 
-      console.log(`Offer with ID ${id} deleted successfully.`);
-      
-      // Return a success message with boolean
+      await this.offerRepository.delete(id);
       return { message: `Offer with ID ${id} deleted successfully.`, success: true };
     } catch (error) {
-      console.error('Error removing offer:', error.message);
-      
-      // Return an error message with boolean
       return { message: 'Error removing offer', success: false };
     }
   }
-  
-  
+
+
+
 }
