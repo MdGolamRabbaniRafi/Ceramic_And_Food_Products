@@ -112,7 +112,7 @@ export class OfferService {
     if (offer.image) {
       const check = await this.deleteImageFile(offer.image);
       if (check.message != "File deleted successfully") {
-        return { message: 'Error removing Offer Image', success: false }
+        return { message: check.message, success: false }
       }
     }
 
