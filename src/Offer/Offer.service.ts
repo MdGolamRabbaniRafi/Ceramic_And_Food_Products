@@ -103,11 +103,12 @@ export class OfferService {
 
   async deleteOffer(id: number): Promise<{ message: string; success: boolean }> {
     const offer = await this.getOfferById(id);
-
-    if ('message' in offer) {
-      return { message: offer.message, success: false }
-    }
     return { message: `checking: ${JSON.stringify(offer)}`, success: false };
+  }
+
+    // if ('message' in offer) {
+    //   return { message: offer.message, success: false }
+    // }
 
     // // Check if image exists and delete it
     // if (offer.image) {
@@ -123,7 +124,7 @@ export class OfferService {
     // } catch (error) {
     //   return { message: 'Error removing offer', success: false };
     // }
-  }
+  // }
 
 
 
