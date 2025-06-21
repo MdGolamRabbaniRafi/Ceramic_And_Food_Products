@@ -87,7 +87,22 @@ let OfferService = class OfferService {
     }
     async deleteOffer(id) {
         const offer = await this.getOfferById(id);
-        return { message: `checking: ${JSON.stringify(offer)}`, success: false };
+        if ('message' in offer) {
+            return { message: offer.message, success: false };
+        }
+        if (offer.image) {
+            const check = await this.deleteImageFile(offer.image);
+            if (check.message != "File deleted successfully") {
+                return { message: check.message, success: false };
+            }
+        }
+        try {
+            await this.offerRepository.delete(id);
+            return { message: `Offer with ID ${id} deleted successfully.`, success: true };
+        }
+        catch (error) {
+            return { message: 'Error removing offer', success: false };
+        }
     }
 };
 exports.OfferService = OfferService;
