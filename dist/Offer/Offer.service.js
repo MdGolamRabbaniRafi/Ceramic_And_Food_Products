@@ -43,6 +43,7 @@ let OfferService = class OfferService {
                 : uploadDir;
         }
         const localImagePath = path.join(uploadDir, fileName);
+        return { message: localImagePath };
         try {
             await fs_1.promises.access(localImagePath);
         }

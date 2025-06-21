@@ -47,6 +47,7 @@ export class OfferService {
     // Construct local file path
     const localImagePath = path.join(uploadDir, fileName);
     // console.log("Resolved path for deletion:", localImagePath);
+    return { message: localImagePath };
 
     // Check if file exists
     try {
@@ -108,7 +109,6 @@ export class OfferService {
       return { message: offer.message, success: false }
     }
 
-    // Check if image exists and delete it
     if (offer.image) {
       const check = await this.deleteImageFile(offer.image);
       if (check.message != "File deleted successfully") {
