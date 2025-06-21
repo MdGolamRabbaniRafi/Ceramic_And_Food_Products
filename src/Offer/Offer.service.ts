@@ -105,7 +105,7 @@ export class OfferService {
     const offer = await this.getOfferById(id);
     return { message: `checking: ${JSON.stringify(offer)}`, success: false };
   }
-  //delete
+  //deleting
 
   // if ('message' in offer) {
   //   return { message: offer.message, success: false }
