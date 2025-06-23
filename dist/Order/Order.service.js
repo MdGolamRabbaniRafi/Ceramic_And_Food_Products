@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
-const Order_entity_1 = require("./Order.entity");
-const Product_service_1 = require("../Product/Product.service");
 const Cupon_entity_1 = require("../Cupon/Cupon.entity");
 const OrderProductMapper_entity_1 = require("../Mapper/Order Product Mapper/OrderProductMapper.entity");
+const Product_service_1 = require("../Product/Product.service");
+const typeorm_2 = require("typeorm");
+const Order_entity_1 = require("./Order.entity");
 let OrderService = class OrderService {
     constructor(orderRepo, orderProductMapperRepo, productService) {
         this.orderRepo = orderRepo;
@@ -110,13 +110,20 @@ let OrderService = class OrderService {
                 if (!productResponse) {
                     throw new Error(`Product with ID ${product.Id} not found.`);
                 }
-                totalOriginalPrice += productResponse.price;
-                totalDiscountedPrice += productResponse.discount
-                    ? productResponse.price - (productResponse.price * productResponse.discount.discountPercentage) / 100
-                    : productResponse.price;
+                const price = parseFloat(productResponse.price);
+                if (isNaN(price)) {
+                    throw new Error(`Invalid price for product ID ${product.Id}`);
+                }
+                totalOriginalPrice += price;
+                if (productResponse.discount) {
+                    const discountPercent = productResponse.discount.discountPercentage || 0;
+                    totalDiscountedPrice += price - (price * discountPercent) / 100;
+                }
+                else {
+                    totalDiscountedPrice += price;
+                }
                 let jsonAttribute = productResponse.json_attribute || {};
                 if (product.json_attribute) {
-                    console.log('json_attribute:', product.json_attribute);
                     try {
                         jsonAttribute = typeof product.json_attribute === 'string'
                             ? JSON.parse(product.json_attribute)
@@ -129,10 +136,10 @@ let OrderService = class OrderService {
                                 }
                                 for (const [subKey, qty] of Object.entries(value)) {
                                     if (!attributes[key][subKey]) {
-                                        throw new Error(`Sub-attribute "${subKey}" not found for attribute "${key}" in product ${product.Id}.`);
+                                        throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
                                     }
                                     if (attributes[key][subKey] < qty) {
-                                        throw new Error(`Insufficient quantity for "${subKey}" in attribute "${key}" for product ${product.Id}.`);
+                                        throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
                                     }
                                     attributes[key][subKey] -= qty;
                                     console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
@@ -146,6 +153,7 @@ let OrderService = class OrderService {
                     }
                     catch (error) {
                         console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+                        throw error;
                     }
                 }
                 else {
@@ -164,12 +172,10 @@ let OrderService = class OrderService {
                     quantity: productResponse.quantity,
                     json_attribute: productResponse.json_attribute,
                 });
-                console.log("abcd");
                 const orderProductMapper = this.orderProductMapperRepo.create({
                     product: productResponse,
                     json_attribute: jsonAttribute,
                 });
-                console.log("abcd2");
                 orderProductMappers.push(orderProductMapper);
             }
             orderData.originalPrice = totalOriginalPrice;
@@ -179,11 +185,11 @@ let OrderService = class OrderService {
                 : totalDiscountedPrice;
             orderData.date = new Date();
             const savedOrder = await this.orderRepo.save(orderData);
-            console.log("abcd3");
+            console.log("Order saved");
             for (const mapper of orderProductMappers) {
                 mapper.order = savedOrder;
                 await this.orderProductMapperRepo.save(mapper);
-                console.log("abcd4");
+                console.log("Mapper saved");
             }
             return savedOrder ? `Order placed successfully.` : `Failed to place the order.`;
         }
