@@ -99,65 +99,88 @@ export class BannerService {
     return updatedResponse;
   }
 
-  async deleteImageFile(imagePath: string): Promise<boolean> {
-    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
-      imagePath = imagePath.replace('https:/', 'https://');
-    }
-    let localImagePath: string = imagePath;
-
-    if (process.env.NODE_ENV === 'production') {
-      if (imagePath.startsWith('https://farseit.com/Upload')) {
-        localImagePath = imagePath.replace('https://farseit.com/Upload', '/home/farseit1/public_html/Upload');
-      } else {
-        return false;
-      }
-    }
-
-    const resolvedPath = path.resolve(localImagePath);
-
-    try {
-      await fs.access(resolvedPath);
-    } catch (err) {
-      return false;
-    }
-
-    try {
-      // Attempt to delete the image file from the server
-      await fs.unlink(resolvedPath);
-      return true;
-    } catch (err) {
-      return false;
-    }
+async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+  if (!imagePath) {
+    return { message: 'No image path provided' };
   }
 
-  async editBanner(id: number, updatedData: { fileName?: string; path?: string; eventLink?: string }): Promise<BannerEntity | null> {
-    const banner = await this.findById(id);
-    if (!banner) {
-      throw new Error('Banner not found');
-    }
-
-    if (updatedData.fileName && updatedData.path) {
-      const oldFilePath = banner.path;
-      // try {
-      const deleteFile = await this.deleteImageFile(oldFilePath);
-      if (deleteFile) {
-
-        banner.FileName = updatedData.fileName;
-        banner.path = updatedData.path;
-
-
-        // Update the event link if provided
-        if (updatedData.eventLink) {
-          banner.EventLink = updatedData.eventLink;
-        }
-
-        // Save the updated banner and return the entity
-        const updatedBanner = await this.BannerRepo.save(banner);
-        return updatedBanner;
-      }
-    }
-    return null;
+  // Normalize incorrect slashes
+  if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+    imagePath = imagePath.replace('https:/', 'https://');
   }
+
+  // Extract filename from URL
+  const fileName = path.basename(imagePath);
+  console.log("basename:", fileName);
+
+  // Determine environment
+  const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+
+  // Get upload path from .env
+  let uploadDir = process.env.Banner_Image_Destination || '';
+
+  // If in production and image path starts with Host_url, convert URL to local path
+  if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+    uploadDir = process.env.Host_path
+      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
+      : uploadDir;
+  }
+
+  // Construct local file path
+  const localImagePath = path.join(uploadDir, fileName);
+  console.log("Resolved path for deletion:", localImagePath);
+
+  // Check if file exists
+  try {
+    await fs.access(localImagePath);
+  } catch (err) {
+    console.error("File not found:", localImagePath);
+    return { message: 'File not found' };
+  }
+
+  // Attempt deletion
+  try {
+    await fs.unlink(localImagePath);
+    console.log("File deleted:", fileName);
+    return { message: 'File deleted successfully' };
+  } catch (err) {
+    console.error("Failed to delete:", localImagePath, err);
+    return { message: 'Failed to delete file' };
+  }
+}
+
+
+
+
+async editBanner(id: number, updatedData: { fileName?: string; path?: string; eventLink?: string }): Promise<{ message: string; banner?: BannerEntity }> {
+  const banner = await this.findById(id);
+  if (!banner) {
+    return { message: 'Banner not found' };
+  }
+
+  if (updatedData.fileName && updatedData.path) {
+    const oldFilePath = banner.path;
+    const deleteFile = await this.deleteImageFile(oldFilePath);
+
+    // ✅ Only continue if old image was successfully deleted
+    if (deleteFile.message !== 'File deleted successfully') {
+      return deleteFile;
+    }
+
+    banner.FileName = updatedData.fileName;
+    banner.path = updatedData.path;
+
+    if (updatedData.eventLink) {
+      banner.EventLink = updatedData.eventLink;
+    }
+
+    const updatedBanner = await this.BannerRepo.save(banner);
+    return { message: 'Banner updated successfully', banner: updatedBanner };
+  }
+
+  return { message: 'File data not provided' };
+}
+
   async deleteBanner(id: number): Promise<boolean> {
     const banner = await this.findById(id);
     if (!banner) {

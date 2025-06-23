@@ -19,19 +19,19 @@ export class CategoryController {
     return await this.categoryService.findAll();
   }
 
-  @Post('/addCategory')
-  async addCategory(@Body() CategoryData: CategoryEntity): Promise<boolean> {
+  @Post('/add')
+  async addCategory(@Body() CategoryData: CategoryEntity): Promise<CategoryEntity|{message:string}> {
     return await this.categoryService.addCategory(CategoryData);//Category/addCategory
   }
   @Put('/edit/:id')
   async editCategory(
     @Param('id', ParseIntPipe) Id: number,
     @Body() categoryData: Partial<CategoryEntity>
-  ): Promise<boolean> {
+  ): Promise<{message:string}> {
     return await this.categoryService.editCategory(Id, categoryData);
   }
   @Delete('/delete/:id')
-  async deleteCategory(@Param('id', ParseIntPipe) Id: number): Promise<boolean> {
+  async deleteCategory(@Param('id', ParseIntPipe) Id: number): Promise<{message:string}> {
     return await this.categoryService.deleteCategory(Id);
   }
 }

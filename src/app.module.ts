@@ -23,10 +23,10 @@ import { AuthModule } from './Auth/Auth.module';
 import { EmailOTPModule } from './EmailOTP/EmailOTP.module';
 import { JwtGaurd } from './Auth/Gaurds/jwt-auth.gaurd';
 // import { ChatModule } from './Real Time Chat/chat.module';
-import { GraphModule } from './Graph/Graph.module';
+import { GraphModule } from './graph/Graph.module';
 import { CuponModule } from './Cupon/Cupon.module';
-import { PathaoModule } from './Pathao/Pathao.module';
-import { TokenModule } from './Auth/Token/Token.module';
+import { PathaoModule } from './pathao/Pathao.module';
+import { TokenModule } from './Auth/token/Token.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OfferModule } from './Offer/Offer.Module';
 

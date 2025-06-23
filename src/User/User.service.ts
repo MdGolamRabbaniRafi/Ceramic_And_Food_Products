@@ -39,70 +39,90 @@ export class UserService {
     }
     return null;
   }
-  async deleteImageFile(imagePath: string): Promise<boolean> {
-    // Log the received imagePath to see if it is already altered
-    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
-      imagePath = imagePath.replace('https:/', 'https://');
-    }
-    let localImagePath: string = imagePath;
 
-    // Check for production environment and transform URL to local path
-    if (process.env.NODE_ENV === 'production') {
-      // Ensure imagePath starts with 'https://farseit.com/Upload' before replacing it
-      if (imagePath.startsWith('https://farseit.com/Upload')) {
-        localImagePath = imagePath.replace('https://farseit.com/Upload', '/home/farseit1/public_html/Upload');
-      } else {
-        return false;
-      }
-    }
-
-    // Resolve the absolute file path for the localImagePath
-    const resolvedPath = path.resolve(localImagePath);
-
-    // Check if the file exists before attempting to delete it
-    try {
-      await fs.access(resolvedPath);  // Check if file exists
-    } catch (err) {
-      return false;
-    }
-
-    try {
-      // Attempt to delete the image file from the server
-      await fs.unlink(resolvedPath);
-      return true;
-    } catch (err) {
-      return false;
-    }
+async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+  if (!imagePath) {
+    return { message: 'No image path provided' };
   }
 
-  async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | null> {
-    const userDetails = await this.SearchByID(Id);
-    const OldPath = (await userDetails).Image;
+  // Normalize incorrect slashes
+  if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+    imagePath = imagePath.replace('https:/', 'https://');
+  }
 
-    // Log the old path to check its format
-    console.log("Old Path from database:", OldPath);
+  // Extract filename from URL
+  const fileName = path.basename(imagePath);
+  console.log("basename:", fileName);
 
-    // Attempt to delete the old image and capture the result message
-    const removeOldPath = await this.deleteImageFile(OldPath);
+  // Determine environment
+  const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
 
-    // Check the result of the image deletion step
-    if (removeOldPath) {
-      // Try to update the profile picture path in the database
-      const result = await this.userRepo.update(Id, {
-        Image: path,
-      });
+  // Get upload path from .env
+  let uploadDir = process.env.Auth_Image_Destination || '';
 
-      if (result.affected > 0) {
-        const updatedUser = await this.userRepo.findOne({ where: { Id } });
-        if (updatedUser) {
-          return updatedUser;
-        }
-      }
-      return null;
+  // If in production and image path starts with Host_url, convert URL to local path
+  if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+    uploadDir = process.env.Host_path
+      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
+      : uploadDir;
+  }
+
+  // Construct local file path
+  const localImagePath = path.join(uploadDir, fileName);
+  console.log("Resolved path for deletion:", localImagePath);
+
+  // Check if file exists
+  try {
+    await fs.access(localImagePath);
+  } catch (err) {
+    console.error("File not found:", localImagePath);
+    return { message: 'File not found' };
+  }
+
+  // Attempt deletion
+  try {
+    await fs.unlink(localImagePath);
+    console.log("File deleted:", fileName);
+    return { message: 'File deleted successfully' };
+  } catch (err) {
+    console.error("Failed to delete:", localImagePath, err);
+    return { message: 'Failed to delete file' };
+  }
+}
+
+
+
+
+async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { message: string }> {
+  const userDetails = await this.SearchByID(Id);
+  const OldPath = userDetails.Image;
+
+  // Log the old path to check its format
+  console.log("Old Path from database:", OldPath);
+
+  // Attempt to delete the old image and capture the result message
+  const removeOldPath = await this.deleteImageFile(OldPath);
+
+  // If failed to delete old image
+  if (removeOldPath.message!='File deleted successfully') {
+    return removeOldPath;
+  }
+
+  // Try to update the profile picture path in the database
+  const result = await this.userRepo.update(Id, { Image: path });
+
+  if (result.affected > 0) {
+    const updatedUser = await this.userRepo.findOne({ where: { Id } });
+    if (updatedUser) {
+      return updatedUser;
     } else {
-      return null;
+      return { message: "Profile picture updated, but failed to fetch updated user details." };
     }
+  } else {
+    return { message: "Failed to update profile picture in database." };
   }
+}
+
 
   // In UserService
   async getAllUsers(): Promise<UserEntity[] | null> {
@@ -220,7 +240,20 @@ export class UserService {
     const user = await this.SearchByID(Id);
 
     if (user) {
-      const imageDeletionResult = await this.deleteImageFile(user.Image);
+      try{      const imageDeletionResult = await this.deleteImageFile(user.Image);
+              const deleteResult = await this.userRepo.delete(Id);
+
+      if (deleteResult.affected > 0) {
+        return true;
+      }
+}
+catch{
+        const deleteResult = await this.userRepo.delete(Id);
+
+      if (deleteResult.affected > 0) {
+        return true;
+      }
+}
 
       // If the image is successfully deleted, proceed to delete the user
       const deleteResult = await this.userRepo.delete(Id);

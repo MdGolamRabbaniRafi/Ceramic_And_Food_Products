@@ -1,0 +1,89 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CollectionController = void 0;
+const common_1 = require("@nestjs/common");
+const Collection_service_1 = require("./Collection.service");
+let CollectionController = class CollectionController {
+    constructor(CollectionService) {
+        this.CollectionService = CollectionService;
+    }
+    getHello() {
+        return this.CollectionService.getHello();
+    }
+    async SearchByID(Id) {
+        return await this.CollectionService.findById(Id);
+    }
+    async Search() {
+        return await this.CollectionService.findAll();
+    }
+    async addCollection(body) {
+        const { collectionData, productIds } = body;
+        return await this.CollectionService.addCollection(collectionData, productIds);
+    }
+    async editCollection(id, body) {
+        const { collectionData, productIds } = body;
+        return await this.CollectionService.editCollection(id, collectionData, productIds);
+    }
+    async deleteCollection(id) {
+        return await this.CollectionService.deleteCollection(id);
+    }
+};
+exports.CollectionController = CollectionController;
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", String)
+], CollectionController.prototype, "getHello", null);
+__decorate([
+    (0, common_1.Get)('/search/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], CollectionController.prototype, "SearchByID", null);
+__decorate([
+    (0, common_1.Get)('/search'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], CollectionController.prototype, "Search", null);
+__decorate([
+    (0, common_1.Post)('/addCollection'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CollectionController.prototype, "addCollection", null);
+__decorate([
+    (0, common_1.Put)('/edit/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], CollectionController.prototype, "editCollection", null);
+__decorate([
+    (0, common_1.Delete)('/delete/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], CollectionController.prototype, "deleteCollection", null);
+exports.CollectionController = CollectionController = __decorate([
+    (0, common_1.Controller)('Collection'),
+    __metadata("design:paramtypes", [Collection_service_1.CollectionService])
+], CollectionController);
+//# sourceMappingURL=Collection.controller.js.map
