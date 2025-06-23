@@ -28,8 +28,14 @@ let OrderController = class OrderController {
     async searchOrder() {
         return await this.orderService.searchOrder();
     }
+    async getOrderById(id) {
+        return await this.orderService.getOrderById(id);
+    }
     async editOrder(id, updatedOrderData) {
         return await this.orderService.editOrder(id, updatedOrderData);
+    }
+    async deleteOrder(id) {
+        return await this.orderService.deleteOrder(id);
     }
 };
 exports.OrderController = OrderController;
@@ -53,6 +59,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "searchOrder", null);
 __decorate([
+    (0, common_1.Get)('/search/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "getOrderById", null);
+__decorate([
     (0, common_1.Put)('/edit/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
@@ -60,6 +73,13 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "editOrder", null);
+__decorate([
+    (0, common_1.Delete)('/delete/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "deleteOrder", null);
 exports.OrderController = OrderController = __decorate([
     (0, common_1.Controller)('Order'),
     __metadata("design:paramtypes", [Order_service_1.OrderService])

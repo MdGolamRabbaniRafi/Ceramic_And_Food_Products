@@ -5,5 +5,7 @@ export declare class OrderController {
     getHello(): string;
     addOrder(OrderData: any): Promise<string>;
     searchOrder(): Promise<any>;
+    getOrderById(id: number): Promise<any>;
     editOrder(id: number, updatedOrderData: any): Promise<string>;
+    deleteOrder(id: number): Promise<string>;
 }

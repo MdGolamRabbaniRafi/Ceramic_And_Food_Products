@@ -35,12 +35,123 @@ let OrderService = class OrderService {
             if (!order) {
                 return `Order with ID ${orderId} not found.`;
             }
-            await this.orderRepo.update(orderId, updatedOrderData);
-            return `Order with ID ${orderId} updated successfully.`;
+            try {
+                let totalOriginalPrice = 0;
+                let totalDiscountedPrice = 0;
+                const orderProductMappers = [];
+                if (updatedOrderData.cupon) {
+                    const cupon = await this.orderRepo.manager.findOne(Cupon_entity_1.CuponEntity, {
+                        where: { id: updatedOrderData.cupon.id },
+                    });
+                    if (!cupon) {
+                        return `Coupon with ID ${updatedOrderData.cupon.id} is not valid.`;
+                    }
+                    const currentDate = new Date();
+                    if (currentDate < cupon.startDate || currentDate > cupon.endDate) {
+                        return `Coupon "${cupon.name}" is not valid within the current date range.`;
+                    }
+                    updatedOrderData.cupon = cupon;
+                }
+                for (const product of updatedOrderData.products) {
+                    console.log('json_attribute for product', product.Id, product.json_attribute);
+                    const productResponse = await this.productService.SearchByID(product.Id);
+                    if (!productResponse) {
+                        throw new Error(`Product with ID ${product.Id} not found.`);
+                    }
+                    const price = parseFloat(productResponse.price);
+                    if (isNaN(price)) {
+                        throw new Error(`Invalid price for product ID ${product.Id}`);
+                    }
+                    totalOriginalPrice += price;
+                    if (productResponse.discount) {
+                        const discountPercent = productResponse.discount.discountPercentage || 0;
+                        totalDiscountedPrice += price - (price * discountPercent) / 100;
+                    }
+                    else {
+                        totalDiscountedPrice += price;
+                    }
+                    let jsonAttribute = productResponse.json_attribute || {};
+                    if (product.json_attribute) {
+                        try {
+                            jsonAttribute = typeof product.json_attribute === 'string'
+                                ? JSON.parse(product.json_attribute)
+                                : product.json_attribute;
+                            if ('attributes' in jsonAttribute) {
+                                const attributes = productResponse.json_attribute.attributes;
+                                for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
+                                    if (!attributes[key]) {
+                                        throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
+                                    }
+                                    for (const [subKey, qty] of Object.entries(value)) {
+                                        if (!attributes[key][subKey]) {
+                                            throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+                                        }
+                                        if (attributes[key][subKey] < qty) {
+                                            throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
+                                        }
+                                        attributes[key][subKey] -= qty;
+                                        console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                                    }
+                                }
+                                productResponse.json_attribute = { attributes };
+                            }
+                            else {
+                                throw new Error(`Malformed attributes for product ${product.Id}.`);
+                            }
+                        }
+                        catch (error) {
+                            console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+                            throw error;
+                        }
+                    }
+                    else {
+                        throw new Error('json_attribute not found for product');
+                    }
+                    productResponse.quantity -= product.quantity;
+                    if (productResponse.quantity < 0) {
+                        return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+                    }
+                    if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+                        throw new Error('Quantity or JSON attribute not defined.');
+                    }
+                    console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
+                    await this.productService.updateProductQuantity({
+                        Id: productResponse.Id,
+                        quantity: productResponse.quantity,
+                        json_attribute: productResponse.json_attribute,
+                    });
+                    const orderProductMapper = this.orderProductMapperRepo.create({
+                        product: productResponse,
+                        json_attribute: jsonAttribute,
+                    });
+                    orderProductMappers.push(orderProductMapper);
+                }
+                updatedOrderData.originalPrice = totalOriginalPrice;
+                updatedOrderData.discountedPrice = totalDiscountedPrice;
+                updatedOrderData.totalAmount = updatedOrderData.cupon
+                    ? Math.max(0, totalDiscountedPrice - updatedOrderData.cupon.amount)
+                    : totalDiscountedPrice;
+                updatedOrderData.date = new Date();
+                delete updatedOrderData.products;
+                await this.orderRepo.update(orderId, updatedOrderData);
+                console.log("Order saved");
+                await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
+                for (const mapper of orderProductMappers) {
+                    mapper.order = order;
+                    await this.orderProductMapperRepo.save(mapper);
+                    console.log("Mapper saved");
+                }
+                const savedOrder = await this.orderRepo.findOne({ where: { Id: orderId } });
+                return savedOrder ? `Order Updated successfully.` : `Failed to place the order.`;
+            }
+            catch (error) {
+                console.error('Error adding order:', error.message);
+                throw error;
+            }
         }
         catch (error) {
             console.error('Error updating order:', error.message);
-            throw new Error('Failed to update order.');
+            throw new Error('Failed to update order.' + error.message);
         }
     }
     async searchOrder() {
@@ -84,6 +195,54 @@ let OrderService = class OrderService {
         catch (error) {
             console.error('Error searching orders:', error.message);
             throw new Error('Failed to fetch orders.');
+        }
+    }
+    async getOrderById(id) {
+        try {
+            const order = await this.orderRepo.findOne({
+                where: { Id: id },
+                relations: [
+                    'user',
+                    'cupon',
+                    'orderProductMappers',
+                    'orderProductMappers.product',
+                    'products',
+                    'payment',
+                ],
+            });
+            if (!order) {
+                return { message: `Order with ID ${id} not found.` };
+            }
+            return {
+                Id: order.Id,
+                user: order.user,
+                originalPrice: order.originalPrice,
+                discountedPrice: order.discountedPrice,
+                totalAmount: order.totalAmount,
+                date: order.date,
+                status: order.status,
+                cupon: order.cupon
+                    ? {
+                        id: order.cupon.id,
+                        name: order.cupon.name,
+                        amount: order.cupon.amount,
+                    }
+                    : null,
+                payment: order.payment
+                    ? { Id: order.payment.Id, status: order.payment.status }
+                    : null,
+                products: order.orderProductMappers.map(mapper => ({
+                    Id: mapper.product.Id,
+                    name: mapper.product.name,
+                    price: mapper.product.price,
+                    discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+                    json_attribute: mapper.json_attribute,
+                })),
+            };
+        }
+        catch (error) {
+            console.error('Error fetching order by ID:', error.message);
+            throw new Error('Failed to fetch order.');
         }
     }
     async addOrder(orderData) {
@@ -196,6 +355,21 @@ let OrderService = class OrderService {
         catch (error) {
             console.error('Error adding order:', error.message);
             throw error;
+        }
+    }
+    async deleteOrder(orderId) {
+        try {
+            const order = await this.orderRepo.findOne({ where: { Id: orderId } });
+            if (!order) {
+                return `Order with ID ${orderId} not found.`;
+            }
+            await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
+            await this.orderRepo.delete(orderId);
+            return `Order with ID ${orderId} deleted successfully.`;
+        }
+        catch (error) {
+            console.error('Error deleting order:', error.message);
+            throw new Error('Failed to delete order.');
         }
     }
 };

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { OrderEntity } from './Order.entity';
 import { OrderService } from './Order.service';
 
@@ -6,24 +6,32 @@ import { OrderService } from './Order.service';
 
 @Controller('Order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(private readonly orderService: OrderService) { }
 
   @Get()
   getHello(): string {
     return this.orderService.getHello();
   }
   @Post('/add')
-  async addOrder(@Body() OrderData:any):Promise<string>
-  {
+  async addOrder(@Body() OrderData: any): Promise<string> {
     return await this.orderService.addOrder(OrderData);
   }
   @Get('/search')
-  async searchOrder():Promise<any>
-  {
+  async searchOrder(): Promise<any> {
     return await this.orderService.searchOrder();
   }
+  @Get('/search/:id')
+  async getOrderById(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return await this.orderService.getOrderById(id);
+  }
+
   @Put('/edit/:id')
   async editOrder(@Param('id', ParseIntPipe) id: number, @Body() updatedOrderData: any): Promise<string> {
     return await this.orderService.editOrder(id, updatedOrderData);
+  }
+
+  @Delete('/delete/:id')
+  async deleteOrder(@Param('id', ParseIntPipe) id: number): Promise<string> {
+    return await this.orderService.deleteOrder(id);
   }
 }

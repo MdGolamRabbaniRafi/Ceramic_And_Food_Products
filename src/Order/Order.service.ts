@@ -21,21 +21,168 @@ export class OrderService {
   getHello(): string {
     return 'Hello Order!';
   }
+
+
+
   async editOrder(orderId: number, updatedOrderData: any): Promise<string> {
     try {
       const order = await this.orderRepo.findOne({ where: { Id: orderId } });
-  
+
       if (!order) {
         return `Order with ID ${orderId} not found.`;
       }
-  
-      await this.orderRepo.update(orderId, updatedOrderData);
-      return `Order with ID ${orderId} updated successfully.`;
-    } catch (error) {
+
+      try {
+        let totalOriginalPrice = 0;
+        let totalDiscountedPrice = 0;
+        const orderProductMappers = [];
+
+        // Validate coupon if provided
+        if (updatedOrderData.cupon) {
+          const cupon = await this.orderRepo.manager.findOne(CuponEntity, {
+            where: { id: updatedOrderData.cupon.id },
+          });
+
+          if (!cupon) {
+            return `Coupon with ID ${updatedOrderData.cupon.id} is not valid.`;
+          }
+
+          const currentDate = new Date();
+          if (currentDate < cupon.startDate || currentDate > cupon.endDate) {
+            return `Coupon "${cupon.name}" is not valid within the current date range.`;
+          }
+
+          updatedOrderData.cupon = cupon;
+        }
+
+        for (const product of updatedOrderData.products) {
+          console.log('json_attribute for product', product.Id, product.json_attribute);
+
+          const productResponse = await this.productService.SearchByID(product.Id);
+          if (!productResponse) {
+            throw new Error(`Product with ID ${product.Id} not found.`);
+          }
+
+          const price = parseFloat(productResponse.price);
+          if (isNaN(price)) {
+            throw new Error(`Invalid price for product ID ${product.Id}`);
+          }
+
+          // Calculate prices
+          totalOriginalPrice += price;
+          if (productResponse.discount) {
+            const discountPercent = productResponse.discount.discountPercentage || 0;
+            totalDiscountedPrice += price - (price * discountPercent) / 100;
+          } else {
+            totalDiscountedPrice += price;
+          }
+
+          // Validate and decrement quantities in json_attributes
+          let jsonAttribute: any = productResponse.json_attribute || {};
+          if (product.json_attribute) {
+            try {
+              jsonAttribute = typeof product.json_attribute === 'string'
+                ? JSON.parse(product.json_attribute)
+                : product.json_attribute;
+
+              if ('attributes' in jsonAttribute) {
+                const attributes = productResponse.json_attribute.attributes;
+
+                for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
+                  if (!attributes[key]) {
+                    throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
+                  }
+
+                  for (const [subKey, qty] of Object.entries(value)) {
+                    if (!attributes[key][subKey]) {
+                      throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+                    }
+
+                    if (attributes[key][subKey] < qty) {
+                      throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
+                    }
+
+                    attributes[key][subKey] -= qty;
+                    console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                  }
+                }
+
+                productResponse.json_attribute = { attributes };
+              } else {
+                throw new Error(`Malformed attributes for product ${product.Id}.`);
+              }
+
+            } catch (error) {
+              console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+              throw error;
+            }
+          } else {
+            throw new Error('json_attribute not found for product');
+          }
+
+          // Decrement total product quantity
+          productResponse.quantity -= product.quantity;
+          if (productResponse.quantity < 0) {
+            return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+          }
+
+          if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+            throw new Error('Quantity or JSON attribute not defined.');
+          }
+
+          console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
+
+          await this.productService.updateProductQuantity({
+            Id: productResponse.Id,
+            quantity: productResponse.quantity,
+            json_attribute: productResponse.json_attribute,
+          });
+
+          const orderProductMapper = this.orderProductMapperRepo.create({
+            product: productResponse,
+            json_attribute: jsonAttribute,
+          });
+
+          orderProductMappers.push(orderProductMapper);
+        }
+
+        updatedOrderData.originalPrice = totalOriginalPrice;
+        updatedOrderData.discountedPrice = totalDiscountedPrice;
+        updatedOrderData.totalAmount = updatedOrderData.cupon
+          ? Math.max(0, totalDiscountedPrice - updatedOrderData.cupon.amount)
+          : totalDiscountedPrice;
+        updatedOrderData.date = new Date();
+
+        // Clean out relations before update
+        delete updatedOrderData.products;
+
+        await this.orderRepo.update(orderId, updatedOrderData);
+        console.log("Order saved");
+
+
+        await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
+
+        for (const mapper of orderProductMappers) {
+          mapper.order = order; // use existing order entity fetched earlier
+          await this.orderProductMapperRepo.save(mapper); // use save only after delete
+          console.log("Mapper saved");
+        }
+        const savedOrder = await this.orderRepo.findOne({ where: { Id: orderId } });
+
+        return savedOrder ? `Order Updated successfully.` : `Failed to place the order.`;
+      } catch (error) {
+        console.error('Error adding order:', error.message);
+        throw error;
+      }
+    }
+    catch (error) {
       console.error('Error updating order:', error.message);
-      throw new Error('Failed to update order.');
+      throw new Error('Failed to update order.' + error.message);
     }
   }
+
+
+
   async searchOrder(): Promise<any> {
     try {
       const orders = await this.orderRepo.find({
@@ -49,7 +196,7 @@ export class OrderService {
         ],
         order: { date: 'DESC' }, // Sort by latest order
       });
-  
+
       return orders.map(order => ({
         Id: order.Id,
         user: order.user, // Include user
@@ -60,10 +207,10 @@ export class OrderService {
         status: order.status,
         cupon: order.cupon
           ? {
-              id: order.cupon.id,
-              name: order.cupon.name,
-              amount: order.cupon.amount,
-            }
+            id: order.cupon.id,
+            name: order.cupon.name,
+            amount: order.cupon.amount,
+          }
           : null,
         payment: order.payment ? { Id: order.payment.Id, status: order.payment.status } : null,
         products: order.orderProductMappers.map(mapper => ({
@@ -74,154 +221,222 @@ export class OrderService {
           json_attribute: mapper.json_attribute, // Return product attributes
         })),
       }));
-     // return orders;
+      // return orders;
     } catch (error) {
       console.error('Error searching orders:', error.message);
       throw new Error('Failed to fetch orders.');
     }
   }
-  
-  
 
-
-
-async addOrder(orderData: any): Promise<string> {
-  try {
-    let totalOriginalPrice = 0;
-    let totalDiscountedPrice = 0;
-    const orderProductMappers = [];
-
-    // Validate coupon if provided
-    if (orderData.cupon) {
-      const cupon = await this.orderRepo.manager.findOne(CuponEntity, {
-        where: { id: orderData.cupon.id },
+  async getOrderById(id: number): Promise<any> {
+    try {
+      const order = await this.orderRepo.findOne({
+        where: { Id: id },
+        relations: [
+          'user',
+          'cupon',
+          'orderProductMappers',
+          'orderProductMappers.product',
+          'products',
+          'payment',
+        ],
       });
 
-      if (!cupon) {
-        return `Coupon with ID ${orderData.cupon.id} is not valid.`;
+      if (!order) {
+        return { message: `Order with ID ${id} not found.` };
       }
 
-      const currentDate = new Date();
-      if (currentDate < cupon.startDate || currentDate > cupon.endDate) {
-        return `Coupon "${cupon.name}" is not valid within the current date range.`;
-      }
-
-      orderData.cupon = cupon;
+      return {
+        Id: order.Id,
+        user: order.user,
+        originalPrice: order.originalPrice,
+        discountedPrice: order.discountedPrice,
+        totalAmount: order.totalAmount,
+        date: order.date,
+        status: order.status,
+        cupon: order.cupon
+          ? {
+            id: order.cupon.id,
+            name: order.cupon.name,
+            amount: order.cupon.amount,
+          }
+          : null,
+        payment: order.payment
+          ? { Id: order.payment.Id, status: order.payment.status }
+          : null,
+        products: order.orderProductMappers.map(mapper => ({
+          Id: mapper.product.Id,
+          name: mapper.product.name,
+          price: mapper.product.price,
+          discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+          json_attribute: mapper.json_attribute,
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching order by ID:', error.message);
+      throw new Error('Failed to fetch order.');
     }
+  }
 
-    for (const product of orderData.products) {
-      console.log('json_attribute for product', product.Id, product.json_attribute);
 
-      const productResponse = await this.productService.SearchByID(product.Id);
-      if (!productResponse) {
-        throw new Error(`Product with ID ${product.Id} not found.`);
+
+
+  async addOrder(orderData: any): Promise<string> {
+    try {
+      let totalOriginalPrice = 0;
+      let totalDiscountedPrice = 0;
+      const orderProductMappers = [];
+
+      // Validate coupon if provided
+      if (orderData.cupon) {
+        const cupon = await this.orderRepo.manager.findOne(CuponEntity, {
+          where: { id: orderData.cupon.id },
+        });
+
+        if (!cupon) {
+          return `Coupon with ID ${orderData.cupon.id} is not valid.`;
+        }
+
+        const currentDate = new Date();
+        if (currentDate < cupon.startDate || currentDate > cupon.endDate) {
+          return `Coupon "${cupon.name}" is not valid within the current date range.`;
+        }
+
+        orderData.cupon = cupon;
       }
 
-      const price = parseFloat(productResponse.price);
-      if (isNaN(price)) {
-        throw new Error(`Invalid price for product ID ${product.Id}`);
-      }
+      for (const product of orderData.products) {
+        console.log('json_attribute for product', product.Id, product.json_attribute);
 
-      // Calculate prices
-      totalOriginalPrice += price;
-      if (productResponse.discount) {
-        const discountPercent = productResponse.discount.discountPercentage || 0;
-        totalDiscountedPrice += price - (price * discountPercent) / 100;
-      } else {
-        totalDiscountedPrice += price;
-      }
+        const productResponse = await this.productService.SearchByID(product.Id);
+        if (!productResponse) {
+          throw new Error(`Product with ID ${product.Id} not found.`);
+        }
 
-      // Validate and decrement quantities in json_attributes
-      let jsonAttribute: any = productResponse.json_attribute || {};
-      if (product.json_attribute) {
-        try {
-          jsonAttribute = typeof product.json_attribute === 'string'
-            ? JSON.parse(product.json_attribute)
-            : product.json_attribute;
+        const price = parseFloat(productResponse.price);
+        if (isNaN(price)) {
+          throw new Error(`Invalid price for product ID ${product.Id}`);
+        }
 
-          if ('attributes' in jsonAttribute) {
-            const attributes = productResponse.json_attribute.attributes;
+        // Calculate prices
+        totalOriginalPrice += price;
+        if (productResponse.discount) {
+          const discountPercent = productResponse.discount.discountPercentage || 0;
+          totalDiscountedPrice += price - (price * discountPercent) / 100;
+        } else {
+          totalDiscountedPrice += price;
+        }
 
-            for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
-              if (!attributes[key]) {
-                throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
-              }
+        // Validate and decrement quantities in json_attributes
+        let jsonAttribute: any = productResponse.json_attribute || {};
+        if (product.json_attribute) {
+          try {
+            jsonAttribute = typeof product.json_attribute === 'string'
+              ? JSON.parse(product.json_attribute)
+              : product.json_attribute;
 
-              for (const [subKey, qty] of Object.entries(value)) {
-                if (!attributes[key][subKey]) {
-                  throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+            if ('attributes' in jsonAttribute) {
+              const attributes = productResponse.json_attribute.attributes;
+
+              for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
+                if (!attributes[key]) {
+                  throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
                 }
 
-                if (attributes[key][subKey] < qty) {
-                  throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
-                }
+                for (const [subKey, qty] of Object.entries(value)) {
+                  if (!attributes[key][subKey]) {
+                    throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+                  }
 
-                attributes[key][subKey] -= qty;
-                console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                  if (attributes[key][subKey] < qty) {
+                    throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
+                  }
+
+                  attributes[key][subKey] -= qty;
+                  console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                }
               }
+
+              productResponse.json_attribute = { attributes };
+            } else {
+              throw new Error(`Malformed attributes for product ${product.Id}.`);
             }
 
-            productResponse.json_attribute = { attributes };
-          } else {
-            throw new Error(`Malformed attributes for product ${product.Id}.`);
+          } catch (error) {
+            console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+            throw error;
           }
-
-        } catch (error) {
-          console.error(`Error processing attributes for product ${product.Id}:`, error.message);
-          throw error;
+        } else {
+          throw new Error('json_attribute not found for product');
         }
-      } else {
-        throw new Error('json_attribute not found for product');
+
+        // Decrement total product quantity
+        productResponse.quantity -= product.quantity;
+        if (productResponse.quantity < 0) {
+          return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+        }
+
+        if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+          throw new Error('Quantity or JSON attribute not defined.');
+        }
+
+        console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
+
+        await this.productService.updateProductQuantity({
+          Id: productResponse.Id,
+          quantity: productResponse.quantity,
+          json_attribute: productResponse.json_attribute,
+        });
+
+        const orderProductMapper = this.orderProductMapperRepo.create({
+          product: productResponse,
+          json_attribute: jsonAttribute,
+        });
+
+        orderProductMappers.push(orderProductMapper);
       }
 
-      // Decrement total product quantity
-      productResponse.quantity -= product.quantity;
-      if (productResponse.quantity < 0) {
-        return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+      orderData.originalPrice = totalOriginalPrice;
+      orderData.discountedPrice = totalDiscountedPrice;
+      orderData.totalAmount = orderData.cupon
+        ? Math.max(0, totalDiscountedPrice - orderData.cupon.amount)
+        : totalDiscountedPrice;
+      orderData.date = new Date();
+
+      const savedOrder = await this.orderRepo.save(orderData);
+      console.log("Order saved");
+
+      for (const mapper of orderProductMappers) {
+        mapper.order = savedOrder;
+        await this.orderProductMapperRepo.save(mapper);
+        console.log("Mapper saved");
       }
 
-      if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
-        throw new Error('Quantity or JSON attribute not defined.');
-      }
-
-      console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
-
-      await this.productService.updateProductQuantity({
-        Id: productResponse.Id,
-        quantity: productResponse.quantity,
-        json_attribute: productResponse.json_attribute,
-      });
-
-      const orderProductMapper = this.orderProductMapperRepo.create({
-        product: productResponse,
-        json_attribute: jsonAttribute,
-      });
-
-      orderProductMappers.push(orderProductMapper);
+      return savedOrder ? `Order placed successfully.` : `Failed to place the order.`;
+    } catch (error) {
+      console.error('Error adding order:', error.message);
+      throw error;
     }
-
-    orderData.originalPrice = totalOriginalPrice;
-    orderData.discountedPrice = totalDiscountedPrice;
-    orderData.totalAmount = orderData.cupon
-      ? Math.max(0, totalDiscountedPrice - orderData.cupon.amount)
-      : totalDiscountedPrice;
-    orderData.date = new Date();
-
-    const savedOrder = await this.orderRepo.save(orderData);
-    console.log("Order saved");
-
-    for (const mapper of orderProductMappers) {
-      mapper.order = savedOrder;
-      await this.orderProductMapperRepo.save(mapper);
-      console.log("Mapper saved");
-    }
-
-    return savedOrder ? `Order placed successfully.` : `Failed to place the order.`;
-  } catch (error) {
-    console.error('Error adding order:', error.message);
-    throw error;
   }
-}
+  async deleteOrder(orderId: number): Promise<string> {
+    try {
+      const order = await this.orderRepo.findOne({ where: { Id: orderId } });
+
+      if (!order) {
+        return `Order with ID ${orderId} not found.`;
+      }
+
+      // Optional: delete associated order-product mappings first
+      await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
+
+      await this.orderRepo.delete(orderId);
+      return `Order with ID ${orderId} deleted successfully.`;
+    } catch (error) {
+      console.error('Error deleting order:', error.message);
+      throw new Error('Failed to delete order.');
+    }
+  }
+
 
 }
 interface JsonAttribute {
@@ -231,7 +446,7 @@ interface JsonAttribute {
     };
   };
 
-  
+
 }
 
 

@@ -10,5 +10,7 @@ export declare class OrderService {
     getHello(): string;
     editOrder(orderId: number, updatedOrderData: any): Promise<string>;
     searchOrder(): Promise<any>;
+    getOrderById(id: number): Promise<any>;
     addOrder(orderData: any): Promise<string>;
+    deleteOrder(orderId: number): Promise<string>;
 }
