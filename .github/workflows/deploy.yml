@@ -13,6 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # ✅ DEBUG: Check if secrets are loaded correctly
+      - name: Debug Secrets
+        run: |
+          echo "Debugging Secrets..."
+          echo "FTP_HOST: ${{ secrets.FTP_HOST }}"
+          echo "FTP_USER: ${{ secrets.FTP_USER }}"
+          echo "FTP_PASSWORD: ${# secrets.FTP_PASSWORD } characters long"
+        shell: bash
+
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
