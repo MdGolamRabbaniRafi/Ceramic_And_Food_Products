@@ -1,30 +1,3 @@
-# name: 🚀 Deploy to cPanel
-
-# on:
-#   push:
-#     branches:
-#       - dev # or your deployment branch
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout Code
-#         uses: actions/checkout@v2
-
-#       - name: Deploy via SSH to cPanel
-#         uses: appleboy/ssh-action@v1.0.0
-#         with:
-#           host: ${{ secrets.CPANEL_HOST }}
-#           username: ${{ secrets.CPANEL_USER }}
-#           key: ${{ secrets.CPANEL_KEY }}
-#           port: ${{ secrets.CPANEL_PORT }}
-#           script: |
-#             cd /home/cerasjuo/testingbackend.ceramicandfoodproducts.com
-#             git pull origin main
-#             npm install --legacy-peer-deps
-#             npm run build
 name: 🚀 Deploy via FTP
 
 on:
@@ -35,8 +8,9 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: FTP Deploy
