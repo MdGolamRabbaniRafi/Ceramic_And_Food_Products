@@ -13,14 +13,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # ✅ DEBUG: Check if secrets are loaded correctly
-      - name: Debug Secrets
+      # ✅ Debug: check if secrets are populated (without revealing them)
+      - name: Debug secrets presence
         run: |
-          echo "Debugging Secrets..."
-          echo "FTP_HOST: ${{ secrets.FTP_HOST }}"
-          echo "FTP_USER: ${{ secrets.FTP_USER }}"
-          echo "FTP_PASSWORD: ${# secrets.FTP_PASSWORD } characters long"
-        shell: bash
+          echo "Debugging secrets..."
+          if [ -z "${{ secrets.FTP_HOST }}" ]; then
+            echo "❌ FTP_HOST is missing"
+          else
+            echo "✅ FTP_HOST is set"
+          fi
+
+          if [ -z "${{ secrets.FTP_USER }}" ]; then
+            echo "❌ FTP_USER is missing"
+          else
+            echo "✅ FTP_USER is set"
+          fi
+
+          if [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
+            echo "❌ FTP_PASSWORD is missing"
+          else
+            echo "✅ FTP_PASSWORD is set"
+          fi
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
