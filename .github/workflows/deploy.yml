@@ -22,8 +22,9 @@ jobs:
           passphrase: ${{ secrets.CPANEL_PASSPHRASE }}
           port: ${{ secrets.CPANEL_PORT }}
           script: |
+            whoami && hostname && pwd
             cd /home/cerasjuo/testingbackend.ceramicandfoodproducts.com
-            git pull origin main
+            git pull origin dev
             npm install --legacy-peer-deps
             npm run build
 
