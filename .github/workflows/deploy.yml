@@ -30,7 +30,7 @@ name: 🚀 Deploy via FTP
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   ftp-deploy:
