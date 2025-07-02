@@ -16,13 +16,24 @@ export class OrderService {
     private orderProductMapperRepo: Repository<OrderProductMapperEntity>,
 
     private readonly productService: ProductService,
-  ) { }
+  ) {}
 
   getHello(): string {
     return 'Hello Order!';
   }
 
-
+  async changeStatus(
+    id: number,
+    status: string,
+  ): Promise<OrderEntity | { message: string }> {
+    let order = await this.orderRepo.findOne({ where: { Id: id } });
+    if (!order) {
+      return { message: 'Order not found' };
+    }
+    order.status=status;
+    await this.orderRepo.update(id,order);
+    return order;
+  }
 
   async editOrder(orderId: number, updatedOrderData: any): Promise<string> {
     try {
@@ -56,9 +67,15 @@ export class OrderService {
         }
 
         for (const product of updatedOrderData.products) {
-          console.log('json_attribute for product', product.Id, product.json_attribute);
+          console.log(
+            'json_attribute for product',
+            product.Id,
+            product.json_attribute,
+          );
 
-          const productResponse = await this.productService.SearchByID(product.Id);
+          const productResponse = await this.productService.SearchByID(
+            product.Id,
+          );
           if (!productResponse) {
             throw new Error(`Product with ID ${product.Id} not found.`);
           }
@@ -71,7 +88,8 @@ export class OrderService {
           // Calculate prices
           totalOriginalPrice += price;
           if (productResponse.discount) {
-            const discountPercent = productResponse.discount.discountPercentage || 0;
+            const discountPercent =
+              productResponse.discount.discountPercentage || 0;
             totalDiscountedPrice += price - (price * discountPercent) / 100;
           } else {
             totalDiscountedPrice += price;
@@ -81,39 +99,54 @@ export class OrderService {
           let jsonAttribute: any = productResponse.json_attribute || {};
           if (product.json_attribute) {
             try {
-              jsonAttribute = typeof product.json_attribute === 'string'
-                ? JSON.parse(product.json_attribute)
-                : product.json_attribute;
+              jsonAttribute =
+                typeof product.json_attribute === 'string'
+                  ? JSON.parse(product.json_attribute)
+                  : product.json_attribute;
 
               if ('attributes' in jsonAttribute) {
                 const attributes = productResponse.json_attribute.attributes;
 
-                for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
+                for (const [key, value] of Object.entries(
+                  jsonAttribute.attributes,
+                )) {
                   if (!attributes[key]) {
-                    throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
+                    throw new Error(
+                      `Attribute "${key}" not found for product ${product.Id}.`,
+                    );
                   }
 
                   for (const [subKey, qty] of Object.entries(value)) {
                     if (!attributes[key][subKey]) {
-                      throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+                      throw new Error(
+                        `Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`,
+                      );
                     }
 
                     if (attributes[key][subKey] < qty) {
-                      throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
+                      throw new Error(
+                        `Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`,
+                      );
                     }
 
                     attributes[key][subKey] -= qty;
-                    console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                    console.log(
+                      `Decremented ${subKey} in ${key} for product ${product.Id}`,
+                    );
                   }
                 }
 
                 productResponse.json_attribute = { attributes };
               } else {
-                throw new Error(`Malformed attributes for product ${product.Id}.`);
+                throw new Error(
+                  `Malformed attributes for product ${product.Id}.`,
+                );
               }
-
             } catch (error) {
-              console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+              console.error(
+                `Error processing attributes for product ${product.Id}:`,
+                error.message,
+              );
               throw error;
             }
           } else {
@@ -126,11 +159,19 @@ export class OrderService {
             return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
           }
 
-          if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+          if (
+            productResponse.quantity === undefined ||
+            productResponse.json_attribute === undefined
+          ) {
             throw new Error('Quantity or JSON attribute not defined.');
           }
 
-          console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
+          console.log(
+            'Updating product with:',
+            productResponse.Id,
+            productResponse.quantity,
+            productResponse.json_attribute,
+          );
 
           await this.productService.updateProductQuantity({
             Id: productResponse.Id,
@@ -157,31 +198,31 @@ export class OrderService {
         delete updatedOrderData.products;
 
         await this.orderRepo.update(orderId, updatedOrderData);
-        console.log("Order saved");
-
+        console.log('Order saved');
 
         await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
 
         for (const mapper of orderProductMappers) {
           mapper.order = order; // use existing order entity fetched earlier
           await this.orderProductMapperRepo.save(mapper); // use save only after delete
-          console.log("Mapper saved");
+          console.log('Mapper saved');
         }
-        const savedOrder = await this.orderRepo.findOne({ where: { Id: orderId } });
+        const savedOrder = await this.orderRepo.findOne({
+          where: { Id: orderId },
+        });
 
-        return savedOrder ? `Order Updated successfully.` : `Failed to place the order.`;
+        return savedOrder
+          ? `Order Updated successfully.`
+          : `Failed to place the order.`;
       } catch (error) {
         console.error('Error adding order:', error.message);
         throw error;
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error updating order:', error.message);
       throw new Error('Failed to update order.' + error.message);
     }
   }
-
-
 
   async searchOrder(): Promise<any> {
     try {
@@ -197,7 +238,7 @@ export class OrderService {
         order: { date: 'DESC' }, // Sort by latest order
       });
 
-      return orders.map(order => ({
+      return orders.map((order) => ({
         Id: order.Id,
         user: order.user, // Include user
         originalPrice: order.originalPrice,
@@ -207,17 +248,21 @@ export class OrderService {
         status: order.status,
         cupon: order.cupon
           ? {
-            id: order.cupon.id,
-            name: order.cupon.name,
-            amount: order.cupon.amount,
-          }
+              id: order.cupon.id,
+              name: order.cupon.name,
+              amount: order.cupon.amount,
+            }
           : null,
-        payment: order.payment ? { Id: order.payment.Id, status: order.payment.status } : null,
-        products: order.orderProductMappers.map(mapper => ({
+        payment: order.payment
+          ? { Id: order.payment.Id, status: order.payment.status }
+          : null,
+        products: order.orderProductMappers.map((mapper) => ({
           Id: mapper.product.Id,
           name: mapper.product.name,
           price: mapper.product.price,
-          discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+          discount: mapper.product.discount
+            ? mapper.product.discount.discountPercentage
+            : 0,
           json_attribute: mapper.json_attribute, // Return product attributes
         })),
       }));
@@ -256,19 +301,21 @@ export class OrderService {
         status: order.status,
         cupon: order.cupon
           ? {
-            id: order.cupon.id,
-            name: order.cupon.name,
-            amount: order.cupon.amount,
-          }
+              id: order.cupon.id,
+              name: order.cupon.name,
+              amount: order.cupon.amount,
+            }
           : null,
         payment: order.payment
           ? { Id: order.payment.Id, status: order.payment.status }
           : null,
-        products: order.orderProductMappers.map(mapper => ({
+        products: order.orderProductMappers.map((mapper) => ({
           Id: mapper.product.Id,
           name: mapper.product.name,
           price: mapper.product.price,
-          discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+          discount: mapper.product.discount
+            ? mapper.product.discount.discountPercentage
+            : 0,
           json_attribute: mapper.json_attribute,
         })),
       };
@@ -277,9 +324,6 @@ export class OrderService {
       throw new Error('Failed to fetch order.');
     }
   }
-
-
-
 
   async addOrder(orderData: any): Promise<string> {
     try {
@@ -306,9 +350,15 @@ export class OrderService {
       }
 
       for (const product of orderData.products) {
-        console.log('json_attribute for product', product.Id, product.json_attribute);
+        console.log(
+          'json_attribute for product',
+          product.Id,
+          product.json_attribute,
+        );
 
-        const productResponse = await this.productService.SearchByID(product.Id);
+        const productResponse = await this.productService.SearchByID(
+          product.Id,
+        );
         if (!productResponse) {
           throw new Error(`Product with ID ${product.Id} not found.`);
         }
@@ -321,7 +371,8 @@ export class OrderService {
         // Calculate prices
         totalOriginalPrice += price;
         if (productResponse.discount) {
-          const discountPercent = productResponse.discount.discountPercentage || 0;
+          const discountPercent =
+            productResponse.discount.discountPercentage || 0;
           totalDiscountedPrice += price - (price * discountPercent) / 100;
         } else {
           totalDiscountedPrice += price;
@@ -331,39 +382,54 @@ export class OrderService {
         let jsonAttribute: any = productResponse.json_attribute || {};
         if (product.json_attribute) {
           try {
-            jsonAttribute = typeof product.json_attribute === 'string'
-              ? JSON.parse(product.json_attribute)
-              : product.json_attribute;
+            jsonAttribute =
+              typeof product.json_attribute === 'string'
+                ? JSON.parse(product.json_attribute)
+                : product.json_attribute;
 
             if ('attributes' in jsonAttribute) {
               const attributes = productResponse.json_attribute.attributes;
 
-              for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
+              for (const [key, value] of Object.entries(
+                jsonAttribute.attributes,
+              )) {
                 if (!attributes[key]) {
-                  throw new Error(`Attribute "${key}" not found for product ${product.Id}.`);
+                  throw new Error(
+                    `Attribute "${key}" not found for product ${product.Id}.`,
+                  );
                 }
 
                 for (const [subKey, qty] of Object.entries(value)) {
                   if (!attributes[key][subKey]) {
-                    throw new Error(`Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`);
+                    throw new Error(
+                      `Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`,
+                    );
                   }
 
                   if (attributes[key][subKey] < qty) {
-                    throw new Error(`Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`);
+                    throw new Error(
+                      `Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`,
+                    );
                   }
 
                   attributes[key][subKey] -= qty;
-                  console.log(`Decremented ${subKey} in ${key} for product ${product.Id}`);
+                  console.log(
+                    `Decremented ${subKey} in ${key} for product ${product.Id}`,
+                  );
                 }
               }
 
               productResponse.json_attribute = { attributes };
             } else {
-              throw new Error(`Malformed attributes for product ${product.Id}.`);
+              throw new Error(
+                `Malformed attributes for product ${product.Id}.`,
+              );
             }
-
           } catch (error) {
-            console.error(`Error processing attributes for product ${product.Id}:`, error.message);
+            console.error(
+              `Error processing attributes for product ${product.Id}:`,
+              error.message,
+            );
             throw error;
           }
         } else {
@@ -376,11 +442,19 @@ export class OrderService {
           return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
         }
 
-        if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+        if (
+          productResponse.quantity === undefined ||
+          productResponse.json_attribute === undefined
+        ) {
           throw new Error('Quantity or JSON attribute not defined.');
         }
 
-        console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
+        console.log(
+          'Updating product with:',
+          productResponse.Id,
+          productResponse.quantity,
+          productResponse.json_attribute,
+        );
 
         await this.productService.updateProductQuantity({
           Id: productResponse.Id,
@@ -404,15 +478,17 @@ export class OrderService {
       orderData.date = new Date();
 
       const savedOrder = await this.orderRepo.save(orderData);
-      console.log("Order saved");
+      console.log('Order saved');
 
       for (const mapper of orderProductMappers) {
         mapper.order = savedOrder;
         await this.orderProductMapperRepo.save(mapper);
-        console.log("Mapper saved");
+        console.log('Mapper saved');
       }
 
-      return savedOrder ? `Order placed successfully.` : `Failed to place the order.`;
+      return savedOrder
+        ? `Order placed successfully.`
+        : `Failed to place the order.`;
     } catch (error) {
       console.error('Error adding order:', error.message);
       throw error;
@@ -436,8 +512,6 @@ export class OrderService {
       throw new Error('Failed to delete order.');
     }
   }
-
-
 }
 interface JsonAttribute {
   attributes: {
@@ -445,8 +519,4 @@ interface JsonAttribute {
       [subKey: string]: number; // Quantity for each sub-attribute
     };
   };
-
-
 }
-
-

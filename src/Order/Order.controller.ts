@@ -1,12 +1,19 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { OrderEntity } from './Order.entity';
 import { OrderService } from './Order.service';
 
-
-
 @Controller('Order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  constructor(private readonly orderService: OrderService) {}
 
   @Get()
   getHello(): string {
@@ -26,8 +33,18 @@ export class OrderController {
   }
 
   @Put('/edit/:id')
-  async editOrder(@Param('id', ParseIntPipe) id: number, @Body() updatedOrderData: any): Promise<string> {
+  async editOrder(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatedOrderData: any,
+  ): Promise<string> {
     return await this.orderService.editOrder(id, updatedOrderData);
+  }
+  @Put('/changeStatus/:id')
+  async changeStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() status: any,
+  ): Promise<OrderEntity | { message: string }> {
+    return await this.orderService.changeStatus(id, status);
   }
 
   @Delete('/delete/:id')
