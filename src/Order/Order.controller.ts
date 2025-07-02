@@ -42,7 +42,7 @@ export class OrderController {
   @Put('/changeStatus/:id')
   async changeStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body() status: any,
+    @Body() status: string,
   ): Promise<OrderEntity | { message: string }> {
     return await this.orderService.changeStatus(id, status);
   }

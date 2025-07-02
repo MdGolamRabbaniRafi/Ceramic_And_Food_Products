@@ -8,7 +8,7 @@ export declare class OrderController {
     searchOrder(): Promise<any>;
     getOrderById(id: number): Promise<any>;
     editOrder(id: number, updatedOrderData: any): Promise<string>;
-    changeStatus(id: number, status: any): Promise<OrderEntity | {
+    changeStatus(id: number, status: string): Promise<OrderEntity | {
         message: string;
     }>;
     deleteOrder(id: number): Promise<string>;
