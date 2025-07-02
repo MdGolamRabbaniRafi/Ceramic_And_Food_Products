@@ -34,6 +34,9 @@ let OrderController = class OrderController {
     async editOrder(id, updatedOrderData) {
         return await this.orderService.editOrder(id, updatedOrderData);
     }
+    async changeStatus(id, status) {
+        return await this.orderService.changeStatus(id, status);
+    }
     async deleteOrder(id) {
         return await this.orderService.deleteOrder(id);
     }
@@ -73,6 +76,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "editOrder", null);
+__decorate([
+    (0, common_1.Put)('/changeStatus/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "changeStatus", null);
 __decorate([
     (0, common_1.Delete)('/delete/:id'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

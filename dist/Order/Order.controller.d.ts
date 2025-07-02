@@ -1,3 +1,4 @@
+import { OrderEntity } from './Order.entity';
 import { OrderService } from './Order.service';
 export declare class OrderController {
     private readonly orderService;
@@ -7,5 +8,8 @@ export declare class OrderController {
     searchOrder(): Promise<any>;
     getOrderById(id: number): Promise<any>;
     editOrder(id: number, updatedOrderData: any): Promise<string>;
+    changeStatus(id: number, status: any): Promise<OrderEntity | {
+        message: string;
+    }>;
     deleteOrder(id: number): Promise<string>;
 }

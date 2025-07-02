@@ -29,6 +29,15 @@ let OrderService = class OrderService {
     getHello() {
         return 'Hello Order!';
     }
+    async changeStatus(id, status) {
+        let order = await this.orderRepo.findOne({ where: { Id: id } });
+        if (!order) {
+            return { message: 'Order not found' };
+        }
+        order.status = status;
+        await this.orderRepo.update(id, order);
+        return order;
+    }
     async editOrder(orderId, updatedOrderData) {
         try {
             const order = await this.orderRepo.findOne({ where: { Id: orderId } });
@@ -73,9 +82,10 @@ let OrderService = class OrderService {
                     let jsonAttribute = productResponse.json_attribute || {};
                     if (product.json_attribute) {
                         try {
-                            jsonAttribute = typeof product.json_attribute === 'string'
-                                ? JSON.parse(product.json_attribute)
-                                : product.json_attribute;
+                            jsonAttribute =
+                                typeof product.json_attribute === 'string'
+                                    ? JSON.parse(product.json_attribute)
+                                    : product.json_attribute;
                             if ('attributes' in jsonAttribute) {
                                 const attributes = productResponse.json_attribute.attributes;
                                 for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
@@ -111,7 +121,8 @@ let OrderService = class OrderService {
                     if (productResponse.quantity < 0) {
                         return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
                     }
-                    if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+                    if (productResponse.quantity === undefined ||
+                        productResponse.json_attribute === undefined) {
                         throw new Error('Quantity or JSON attribute not defined.');
                     }
                     console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
@@ -134,15 +145,19 @@ let OrderService = class OrderService {
                 updatedOrderData.date = new Date();
                 delete updatedOrderData.products;
                 await this.orderRepo.update(orderId, updatedOrderData);
-                console.log("Order saved");
+                console.log('Order saved');
                 await this.orderProductMapperRepo.delete({ order: { Id: orderId } });
                 for (const mapper of orderProductMappers) {
                     mapper.order = order;
                     await this.orderProductMapperRepo.save(mapper);
-                    console.log("Mapper saved");
+                    console.log('Mapper saved');
                 }
-                const savedOrder = await this.orderRepo.findOne({ where: { Id: orderId } });
-                return savedOrder ? `Order Updated successfully.` : `Failed to place the order.`;
+                const savedOrder = await this.orderRepo.findOne({
+                    where: { Id: orderId },
+                });
+                return savedOrder
+                    ? `Order Updated successfully.`
+                    : `Failed to place the order.`;
             }
             catch (error) {
                 console.error('Error adding order:', error.message);
@@ -167,7 +182,7 @@ let OrderService = class OrderService {
                 ],
                 order: { date: 'DESC' },
             });
-            return orders.map(order => ({
+            return orders.map((order) => ({
                 Id: order.Id,
                 user: order.user,
                 originalPrice: order.originalPrice,
@@ -182,12 +197,16 @@ let OrderService = class OrderService {
                         amount: order.cupon.amount,
                     }
                     : null,
-                payment: order.payment ? { Id: order.payment.Id, status: order.payment.status } : null,
-                products: order.orderProductMappers.map(mapper => ({
+                payment: order.payment
+                    ? { Id: order.payment.Id, status: order.payment.status }
+                    : null,
+                products: order.orderProductMappers.map((mapper) => ({
                     Id: mapper.product.Id,
                     name: mapper.product.name,
                     price: mapper.product.price,
-                    discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+                    discount: mapper.product.discount
+                        ? mapper.product.discount.discountPercentage
+                        : 0,
                     json_attribute: mapper.json_attribute,
                 })),
             }));
@@ -231,11 +250,13 @@ let OrderService = class OrderService {
                 payment: order.payment
                     ? { Id: order.payment.Id, status: order.payment.status }
                     : null,
-                products: order.orderProductMappers.map(mapper => ({
+                products: order.orderProductMappers.map((mapper) => ({
                     Id: mapper.product.Id,
                     name: mapper.product.name,
                     price: mapper.product.price,
-                    discount: mapper.product.discount ? mapper.product.discount.discountPercentage : 0,
+                    discount: mapper.product.discount
+                        ? mapper.product.discount.discountPercentage
+                        : 0,
                     json_attribute: mapper.json_attribute,
                 })),
             };
@@ -284,9 +305,10 @@ let OrderService = class OrderService {
                 let jsonAttribute = productResponse.json_attribute || {};
                 if (product.json_attribute) {
                     try {
-                        jsonAttribute = typeof product.json_attribute === 'string'
-                            ? JSON.parse(product.json_attribute)
-                            : product.json_attribute;
+                        jsonAttribute =
+                            typeof product.json_attribute === 'string'
+                                ? JSON.parse(product.json_attribute)
+                                : product.json_attribute;
                         if ('attributes' in jsonAttribute) {
                             const attributes = productResponse.json_attribute.attributes;
                             for (const [key, value] of Object.entries(jsonAttribute.attributes)) {
@@ -322,7 +344,8 @@ let OrderService = class OrderService {
                 if (productResponse.quantity < 0) {
                     return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
                 }
-                if (productResponse.quantity === undefined || productResponse.json_attribute === undefined) {
+                if (productResponse.quantity === undefined ||
+                    productResponse.json_attribute === undefined) {
                     throw new Error('Quantity or JSON attribute not defined.');
                 }
                 console.log('Updating product with:', productResponse.Id, productResponse.quantity, productResponse.json_attribute);
@@ -344,13 +367,15 @@ let OrderService = class OrderService {
                 : totalDiscountedPrice;
             orderData.date = new Date();
             const savedOrder = await this.orderRepo.save(orderData);
-            console.log("Order saved");
+            console.log('Order saved');
             for (const mapper of orderProductMappers) {
                 mapper.order = savedOrder;
                 await this.orderProductMapperRepo.save(mapper);
-                console.log("Mapper saved");
+                console.log('Mapper saved');
             }
-            return savedOrder ? `Order placed successfully.` : `Failed to place the order.`;
+            return savedOrder
+                ? `Order placed successfully.`
+                : `Failed to place the order.`;
         }
         catch (error) {
             console.error('Error adding order:', error.message);
