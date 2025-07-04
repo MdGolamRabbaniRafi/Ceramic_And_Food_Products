@@ -31,7 +31,7 @@ let ProductService = class ProductService {
         return parseFloat((price - discountAmount).toFixed(2));
     }
     async SearchByID(Id) {
-        let productEntity = await this.productRepo.findOne({
+        const productEntity = await this.productRepo.findOne({
             where: { Id },
             relations: ['discount'],
         });
@@ -39,13 +39,13 @@ let ProductService = class ProductService {
             return null;
         }
         if (typeof productEntity.image === 'string') {
-            console.log('Before Replacement:', productEntity.image);
             const imageArray = productEntity.image.split(',');
-            const updatedImageArray = imageArray.map((imgPath) => imgPath
-                .replace('$', '')
-                .replace(process.env.Host_path, process.env.Host_url));
-            productEntity.image = updatedImageArray.toString();
-            console.log('After Replacement:', productEntity.image);
+            const updatedImageArray = imageArray.map((imgPath) => {
+                const trimmed = imgPath.trim();
+                const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+                return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+            });
+            productEntity.image = updatedImageArray.join(',');
         }
         if (productEntity.discount) {
             const discountedPrice = this.calculateDiscountedPrice(productEntity.price, productEntity.discount.discountPercentage);
@@ -53,7 +53,7 @@ let ProductService = class ProductService {
         }
         return {
             ...productEntity,
-            ImagePath: productEntity.image.split(','),
+            image: productEntity.image.split(','),
         };
     }
     async SearchByIDWithoutDiscount(Id) {
@@ -92,24 +92,29 @@ let ProductService = class ProductService {
         return null;
     }
     async SearchByCategoryID(categoryId) {
-        let productEntities = await this.productRepo.find({
+        const productEntities = await this.productRepo.find({
             where: { category: { Id: categoryId } },
             relations: ['discount'],
         });
         if (productEntities.length > 0) {
             productEntities.forEach((product) => {
                 if (typeof product.image === 'string') {
-                    product.image = product.image
-                        .split(',')
-                        .map((imgPath) => imgPath.replace(process.env.Host_path, process.env.Host_url))
-                        .join(',');
+                    const updatedImageArray = product.image.split(',').map((imgPath) => {
+                        const trimmed = imgPath.trim();
+                        const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+                        return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+                    });
+                    product.image = updatedImageArray.join(',');
                 }
                 if (product.discount) {
                     const discountedPrice = this.calculateDiscountedPrice(product.price, product.discount.discountPercentage);
                     product['discountedPrice'] = discountedPrice;
                 }
             });
-            return productEntities;
+            return productEntities.map((product) => ({
+                ...product,
+                image: product.image.split(','),
+            }));
         }
         return null;
     }

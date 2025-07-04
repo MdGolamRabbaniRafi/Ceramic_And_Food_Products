@@ -8,9 +8,7 @@ export declare class ProductController {
     Search(): Promise<{
         message: string;
     } | any[]>;
-    SearchByCategoryID(Id: number): Promise<{
-        message: string;
-    } | any[]>;
+    SearchByCategoryID(categoryId: number): Promise<any>;
     addProduct(files: Express.Multer.File[], req: any): Promise<boolean | ProductEntity>;
     editProduct(id: number, files: Express.Multer.File[], req: any): Promise<ProductEntity | {
         message: string;

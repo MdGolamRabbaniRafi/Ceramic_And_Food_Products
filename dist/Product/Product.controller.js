@@ -28,14 +28,7 @@ let ProductController = class ProductController {
     async SearchByID(Id) {
         const product = await this.productService.SearchByID(Id);
         if (product) {
-            const productWithImages = {
-                ...product,
-                image: product.image.split(',').map((filename) => {
-                    const trimmedPath = filename.trim();
-                    return `$${(0, path_1.normalize)(trimmedPath).replace(/\\/g, '/')}`;
-                }),
-            };
-            return productWithImages;
+            return product;
         }
         return { message: 'Product not found' };
     }
@@ -52,21 +45,12 @@ let ProductController = class ProductController {
         }
         return null;
     }
-    async SearchByCategoryID(Id) {
-        const productEntities = await this.productService.SearchByCategoryID(Id);
-        if (productEntities) {
-            const productsWithImages = productEntities.map((product) => {
-                return {
-                    ...product,
-                    image: product.image.split(',').map((filename) => {
-                        const trimmedPath = filename.trim();
-                        return (0, path_1.normalize)(trimmedPath).replace(/\\/g, '/');
-                    }),
-                };
-            });
-            return productsWithImages;
+    async SearchByCategoryID(categoryId) {
+        const products = await this.productService.SearchByCategoryID(categoryId);
+        if (products) {
+            return products;
         }
-        return { message: 'Not found' };
+        return { message: 'No products found in this category' };
     }
     async addProduct(files, req) {
         const { name, desc, price, quantity, date, json_attribute, categoryId } = req.body;
@@ -158,8 +142,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "Search", null);
 __decorate([
-    (0, common_1.Get)('/searchByCategory/:CategoryId'),
-    __param(0, (0, common_1.Param)('CategoryId', common_1.ParseIntPipe)),
+    (0, common_1.Get)('/search/category/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)

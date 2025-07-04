@@ -8,7 +8,7 @@ export declare class ProductService {
     SearchByID(Id: number): Promise<any | null>;
     SearchByIDWithoutDiscount(Id: number): Promise<ProductEntity | null>;
     Search(): Promise<ProductEntity[] | null>;
-    SearchByCategoryID(categoryId: number): Promise<ProductEntity[] | null>;
+    SearchByCategoryID(categoryId: number): Promise<any[] | null>;
     addProduct(productData: Partial<ProductEntity>): Promise<ProductEntity | boolean>;
     updateProductQuantity(product: Partial<ProductEntity>): Promise<void>;
     editProduct(id: number, productData: Partial<ProductEntity>): Promise<ProductEntity | {
