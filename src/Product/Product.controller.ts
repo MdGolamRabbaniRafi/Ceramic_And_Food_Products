@@ -46,16 +46,13 @@ export class ProductController {
   @Get('/search')
   async Search(): Promise<{ message: string } | any[]> {
     const productEntities = await this.productService.Search();
-    if (productEntities) {
-      // const baseImageUrl = process.env.Product_Image_Destination;
 
+    if (productEntities) {
+      // Convert image string to array
       const productsWithImages = productEntities.map((product) => {
         return {
           ...product,
-          image: product.image.split(',').map((filename) => {
-            const trimmedPath = filename.trim();
-            return normalize(trimmedPath).replace(/\\/g, '/');
-          }),
+          image: product.image.split(','),
         };
       });
 
@@ -146,7 +143,6 @@ export class ProductController {
       imageUrls += (imageUrls ? ',' : '') + finalUrl;
     });
 
-
     const productData: Partial<ProductEntity> = {
       name,
       desc,
@@ -206,7 +202,7 @@ export class ProductController {
       const isProduction = process.env.NODE_ENV === 'production';
       let finalUrl: string;
       if (isProduction) {
-        finalUrl = `https://${trimmedPath}`;
+        finalUrl = `${process.env.Host_url}${trimmedPath}`;
       } else {
         finalUrl = trimmedPath;
       }
@@ -242,7 +238,7 @@ export class ProductController {
     return await this.productService.deleteProduct(id);
   }
 
-    @Delete('/ForcefullyDelete/:id')
+  @Delete('/ForcefullyDelete/:id')
   async ForcefullyDelete(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ message: string }> {

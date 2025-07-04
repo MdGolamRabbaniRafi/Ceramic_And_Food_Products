@@ -45,10 +45,7 @@ let ProductController = class ProductController {
             const productsWithImages = productEntities.map((product) => {
                 return {
                     ...product,
-                    image: product.image.split(',').map((filename) => {
-                        const trimmedPath = filename.trim();
-                        return (0, path_1.normalize)(trimmedPath).replace(/\\/g, '/');
-                    }),
+                    image: product.image.split(','),
                 };
             });
             return productsWithImages;
@@ -109,7 +106,7 @@ let ProductController = class ProductController {
             const isProduction = process.env.NODE_ENV === 'production';
             let finalUrl;
             if (isProduction) {
-                finalUrl = `https://${trimmedPath}`;
+                finalUrl = `${process.env.Host_url}${trimmedPath}`;
             }
             else {
                 finalUrl = trimmedPath;

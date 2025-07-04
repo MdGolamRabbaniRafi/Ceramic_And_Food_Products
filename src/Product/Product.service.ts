@@ -138,22 +138,29 @@ export class ProductService {
   }
 
   async Search(): Promise<ProductEntity[] | null> {
-    let productEntities = await this.productRepo.find({
+    const productEntities = await this.productRepo.find({
       relations: ['discount'],
     });
 
     if (productEntities.length >= 0) {
-      // Process each product entity to add discounted price
       productEntities.forEach((product) => {
+        // Handle image field formatting
         if (typeof product.image === 'string') {
-          // Convert the string to an array, process it, and convert it back to a string
           product.image = product.image
-            .split(',') // Split by comma if multiple images are stored as a string
-            .map((imgPath) =>
-              imgPath.replace(process.env.Host_path, process.env.Host_url),
-            )
-            .join(','); // Join back into a string
+            .split(',')
+            .map((imgPath) => {
+              const trimmed = imgPath.trim();
+
+              // Remove full host like "https://ceramicandfoodproducts.com/"
+              const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+
+              // Return in "https:/Upload/Product/..." format
+              return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+            })
+            .join(',');
         }
+
+        // Handle discount
         if (product.discount) {
           const discountedPrice = this.calculateDiscountedPrice(
             product.price,
@@ -161,7 +168,6 @@ export class ProductService {
           );
           product['discountedPrice'] = discountedPrice;
         }
-        // delete product.discount; // Remove the discount object
       });
 
       return productEntities;

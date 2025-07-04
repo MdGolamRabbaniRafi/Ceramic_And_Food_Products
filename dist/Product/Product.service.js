@@ -67,7 +67,7 @@ let ProductService = class ProductService {
         return null;
     }
     async Search() {
-        let productEntities = await this.productRepo.find({
+        const productEntities = await this.productRepo.find({
             relations: ['discount'],
         });
         if (productEntities.length >= 0) {
@@ -75,7 +75,11 @@ let ProductService = class ProductService {
                 if (typeof product.image === 'string') {
                     product.image = product.image
                         .split(',')
-                        .map((imgPath) => imgPath.replace(process.env.Host_path, process.env.Host_url))
+                        .map((imgPath) => {
+                        const trimmed = imgPath.trim();
+                        const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+                        return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+                    })
                         .join(',');
                 }
                 if (product.discount) {
