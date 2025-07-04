@@ -25,19 +25,13 @@ export class ProductController {
   getHello(): string {
     return this.productService.getHello();
   }
+
   @Get('/search/:id')
   async SearchByID(@Param('id', ParseIntPipe) Id: number): Promise<any> {
     const product = await this.productService.SearchByID(Id);
-    if (product) {
-      const productWithImages = {
-        ...product,
-        image: product.image.split(',').map((filename) => {
-          const trimmedPath = filename.trim();
-          return `$${normalize(trimmedPath).replace(/\\/g, '/')}`;
-        }),
-      };
 
-      return productWithImages;
+    if (product) {
+      return product;
     }
 
     return { message: 'Product not found' };
@@ -62,30 +56,17 @@ export class ProductController {
     return null;
   }
 
-  @Get('/searchByCategory/:CategoryId')
-  async SearchByCategoryID(
-    @Param('CategoryId', ParseIntPipe) Id: number,
-  ): Promise<{ message: string } | any[]> {
-    const productEntities = await this.productService.SearchByCategoryID(Id);
+@Get('/search/category/:id')
+async SearchByCategoryID(@Param('id', ParseIntPipe) categoryId: number): Promise<any> {
+  const products = await this.productService.SearchByCategoryID(categoryId);
 
-    if (productEntities) {
-      // const baseImageUrl = process.env.Product_Image_Destination;
-
-      const productsWithImages = productEntities.map((product) => {
-        return {
-          ...product,
-          image: product.image.split(',').map((filename) => {
-            const trimmedPath = filename.trim();
-            return normalize(trimmedPath).replace(/\\/g, '/');
-          }),
-        };
-      });
-
-      return productsWithImages;
-    }
-
-    return { message: 'Not found' };
+  if (products) {
+    return products;
   }
+
+  return { message: 'No products found in this category' };
+}
+
 
   @Post('/add')
   @UseInterceptors(

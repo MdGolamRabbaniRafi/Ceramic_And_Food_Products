@@ -29,8 +29,9 @@ export class ProductService {
     const discountAmount = price * (discountPercentage / 100);
     return parseFloat((price - discountAmount).toFixed(2)); // Round to 2 decimal places
   }
+
   async SearchByID(Id: number): Promise<any | null> {
-    let productEntity = await this.productRepo.findOne({
+    const productEntity = await this.productRepo.findOne({
       where: { Id },
       relations: ['discount'],
     });
@@ -39,27 +40,23 @@ export class ProductService {
       return null;
     }
 
-    // Ensure image exists and is a string before processing
+    // Clean and format image paths
     if (typeof productEntity.image === 'string') {
-      console.log('Before Replacement:', productEntity.image);
-
-      // Step 1: Split into an array
       const imageArray = productEntity.image.split(',');
 
-      // Step 2: Replace the base path and remove "$" symbols if present
-      const updatedImageArray = imageArray.map((imgPath) =>
-        imgPath
-          .replace('$', '')
-          .replace(process.env.Host_path, process.env.Host_url),
-      );
+      const updatedImageArray = imageArray.map((imgPath) => {
+        const trimmed = imgPath.trim();
 
-      // Step 3: Assign the updated image array to productEntity
-      productEntity.image = updatedImageArray.toString(); // Store the updated array
+        // Remove domain and return in format "https:/Upload/Product/..."
+        const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+        return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+      });
 
-      console.log('After Replacement:', productEntity.image);
+      // Store updated string (optional, used internally)
+      productEntity.image = updatedImageArray.join(',');
     }
 
-    // Check if there is a discount and calculate the discounted price
+    // Add discounted price if applicable
     if (productEntity.discount) {
       const discountedPrice = this.calculateDiscountedPrice(
         productEntity.price,
@@ -68,10 +65,9 @@ export class ProductService {
       productEntity['discountedPrice'] = discountedPrice;
     }
 
-    // Return the product entity with the updated image array
     return {
-      ...productEntity, // Spread the product entity to return all its fields
-      ImagePath: productEntity.image.split(','), // Add the updated image array separately
+      ...productEntity,
+      image: productEntity.image.split(','), // Final formatted array
     };
   }
 
@@ -176,26 +172,24 @@ export class ProductService {
     return null;
   }
 
-  async SearchByCategoryID(
-    categoryId: number,
-  ): Promise<ProductEntity[] | null> {
-    let productEntities = await this.productRepo.find({
+  async SearchByCategoryID(categoryId: number): Promise<any[] | null> {
+    const productEntities = await this.productRepo.find({
       where: { category: { Id: categoryId } },
       relations: ['discount'],
     });
 
     if (productEntities.length > 0) {
-      // Process each product entity to add discounted price
       productEntities.forEach((product) => {
         if (typeof product.image === 'string') {
-          // Convert the string to an array, process it, and convert it back to a string
-          product.image = product.image
-            .split(',') // Split by comma if multiple images are stored as a string
-            .map((imgPath) =>
-              imgPath.replace(process.env.Host_path, process.env.Host_url),
-            )
-            .join(','); // Join back into a string
+          const updatedImageArray = product.image.split(',').map((imgPath) => {
+            const trimmed = imgPath.trim();
+            const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
+            return `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+          });
+
+          product.image = updatedImageArray.join(',');
         }
+
         if (product.discount) {
           const discountedPrice = this.calculateDiscountedPrice(
             product.price,
@@ -203,10 +197,13 @@ export class ProductService {
           );
           product['discountedPrice'] = discountedPrice;
         }
-        // delete product.discount; // Remove the discount object
       });
 
-      return productEntities;
+      // Fix: change image to array AFTER processing, return as `any[]`
+      return productEntities.map((product) => ({
+        ...product,
+        image: product.image.split(','), // Make image an array
+      }));
     }
 
     return null;
