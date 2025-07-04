@@ -33,17 +33,19 @@ let ProductService = class ProductService {
     async SearchByID(Id) {
         let productEntity = await this.productRepo.findOne({
             where: { Id },
-            relations: ['discount']
+            relations: ['discount'],
         });
         if (!productEntity) {
             return null;
         }
         if (typeof productEntity.image === 'string') {
-            console.log("Before Replacement:", productEntity.image);
+            console.log('Before Replacement:', productEntity.image);
             const imageArray = productEntity.image.split(',');
-            const updatedImageArray = imageArray.map(imgPath => imgPath.replace('$', '').replace(process.env.Host_path, process.env.Host_url));
+            const updatedImageArray = imageArray.map((imgPath) => imgPath
+                .replace('$', '')
+                .replace(process.env.Host_path, process.env.Host_url));
             productEntity.image = updatedImageArray.toString();
-            console.log("After Replacement:", productEntity.image);
+            console.log('After Replacement:', productEntity.image);
         }
         if (productEntity.discount) {
             const discountedPrice = this.calculateDiscountedPrice(productEntity.price, productEntity.discount.discountPercentage);
@@ -51,24 +53,29 @@ let ProductService = class ProductService {
         }
         return {
             ...productEntity,
-            ImagePath: productEntity.image.split(',')
+            ImagePath: productEntity.image.split(','),
         };
     }
     async SearchByIDWithoutDiscount(Id) {
-        let productEntity = await this.productRepo.findOne({ where: { Id }, relations: ['discount'] });
+        let productEntity = await this.productRepo.findOne({
+            where: { Id },
+            relations: ['discount'],
+        });
         if (productEntity) {
             return productEntity;
         }
         return null;
     }
     async Search() {
-        let productEntities = await this.productRepo.find({ relations: ['discount'] });
+        let productEntities = await this.productRepo.find({
+            relations: ['discount'],
+        });
         if (productEntities.length >= 0) {
-            productEntities.forEach(product => {
+            productEntities.forEach((product) => {
                 if (typeof product.image === 'string') {
                     product.image = product.image
                         .split(',')
-                        .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
+                        .map((imgPath) => imgPath.replace(process.env.Host_path, process.env.Host_url))
                         .join(',');
                 }
                 if (product.discount) {
@@ -81,13 +88,16 @@ let ProductService = class ProductService {
         return null;
     }
     async SearchByCategoryID(categoryId) {
-        let productEntities = await this.productRepo.find({ where: { category: { Id: categoryId } }, relations: ['discount'] });
+        let productEntities = await this.productRepo.find({
+            where: { category: { Id: categoryId } },
+            relations: ['discount'],
+        });
         if (productEntities.length > 0) {
-            productEntities.forEach(product => {
+            productEntities.forEach((product) => {
                 if (typeof product.image === 'string') {
                     product.image = product.image
                         .split(',')
-                        .map(imgPath => imgPath.replace(process.env.Host_path, process.env.Host_url))
+                        .map((imgPath) => imgPath.replace(process.env.Host_path, process.env.Host_url))
                         .join(',');
                 }
                 if (product.discount) {
@@ -110,17 +120,24 @@ let ProductService = class ProductService {
             if (!productData.desc || typeof productData.desc !== 'string') {
                 throw new common_1.BadRequestException('The desc field is required and must be a string.');
             }
-            if (Number.isNaN(productData.price) || productData.price == null || typeof productData.price !== 'number' || productData.price < 0) {
+            if (Number.isNaN(productData.price) ||
+                productData.price == null ||
+                typeof productData.price !== 'number' ||
+                productData.price < 0) {
                 throw new common_1.BadRequestException('The price field is required and must be a positive number.');
             }
-            if (productData.quantity == null || typeof productData.quantity !== 'number' || productData.quantity < 0) {
+            if (productData.quantity == null ||
+                typeof productData.quantity !== 'number' ||
+                productData.quantity < 0) {
                 throw new common_1.BadRequestException('The quantity field is required and must be a non-negative integer.');
             }
             if (typeof productData.json_attribute === 'string') {
                 productData.json_attribute = JSON.parse(productData.json_attribute);
             }
-            if (productData.json_attribute && typeof productData.json_attribute === 'object') {
-                const attributes = productData.json_attribute.attributes;
+            if (productData.json_attribute &&
+                typeof productData.json_attribute === 'object') {
+                const attributes = productData.json_attribute
+                    .attributes;
                 if (!attributes || typeof attributes !== 'object') {
                     throw new common_1.BadRequestException('Invalid attribute structure.');
                 }
@@ -144,7 +161,11 @@ let ProductService = class ProductService {
                     }
                 }
                 if (quantityMismatch) {
-                    throw new common_1.BadRequestException("The total quantity for " + mismatchAttribute + " does not match the original quantity " + productData.quantity + ".");
+                    throw new common_1.BadRequestException('The total quantity for ' +
+                        mismatchAttribute +
+                        ' does not match the original quantity ' +
+                        productData.quantity +
+                        '.');
                 }
             }
             const productDetails = await this.productRepo.save(productData);
@@ -161,7 +182,8 @@ let ProductService = class ProductService {
         }
     }
     async updateProductQuantity(product) {
-        if (product.quantity === undefined || product.json_attribute === undefined) {
+        if (product.quantity === undefined ||
+            product.json_attribute === undefined) {
             throw new Error('Quantity or JSON attribute not defined.');
         }
         const productRepo = this.productRepo;
@@ -169,10 +191,11 @@ let ProductService = class ProductService {
             quantity: product.quantity,
             json_attribute: product.json_attribute,
         };
-        await productRepo.createQueryBuilder()
+        await productRepo
+            .createQueryBuilder()
             .update(Product_entity_1.ProductEntity)
             .set(updatedValues)
-            .where("Id = :Id", { Id: product.Id })
+            .where('Id = :Id', { Id: product.Id })
             .execute();
     }
     async editProduct(id, productData) {
@@ -191,7 +214,7 @@ let ProductService = class ProductService {
                     imageArray.forEach(async (img) => {
                         const res = await this.deleteImageFile(img);
                         console.log(product.image);
-                        if (res.message != "File deleted successfully") {
+                        if (res.message != 'File deleted successfully') {
                             return res;
                         }
                     });
@@ -210,14 +233,20 @@ let ProductService = class ProductService {
                     return { message: `The price field must be a positive number.` };
                 }
             }
-            if (productData.quantity != null && typeof productData.quantity !== 'number' || productData.quantity < 0) {
-                return { message: `The quantity field is required and must be a non-negative integer..` };
+            if ((productData.quantity != null &&
+                typeof productData.quantity !== 'number') ||
+                productData.quantity < 0) {
+                return {
+                    message: `The quantity field is required and must be a non-negative integer..`,
+                };
             }
             if (typeof productData.json_attribute === 'string') {
                 productData.json_attribute = JSON.parse(productData.json_attribute);
             }
-            if (productData.json_attribute && typeof productData.json_attribute === 'object') {
-                const attributes = productData.json_attribute.attributes;
+            if (productData.json_attribute &&
+                typeof productData.json_attribute === 'object') {
+                const attributes = productData.json_attribute
+                    .attributes;
                 if (!attributes || typeof attributes !== 'object') {
                     return { message: `Invalid attribute structure.` };
                 }
@@ -241,15 +270,21 @@ let ProductService = class ProductService {
                     }
                 }
                 if (quantityMismatch) {
-                    return { message: "The total quantity for " + mismatchAttribute + " does not match the original quantity " + product.quantity + "." };
+                    return {
+                        message: 'The total quantity for ' +
+                            mismatchAttribute +
+                            ' does not match the original quantity ' +
+                            product.quantity +
+                            '.',
+                    };
                 }
             }
             await this.productRepo.update(id, productData);
             return await this.productRepo.findOne({ where: { Id: id } });
         }
         catch (error) {
-            console.error("Error editing product details:", error.message);
-            return { message: "Error editing product details" };
+            console.error('Error editing product details:', error.message);
+            return { message: 'Error editing product details' };
         }
     }
     async deleteProduct(id) {
@@ -258,25 +293,27 @@ let ProductService = class ProductService {
             throw new common_1.NotFoundException(`Product with ID ${id} not found`);
         }
         if (product.image) {
-            const imageArray = product.image.split(',').map(img => img.trim());
-            const deletionResults = await Promise.all(imageArray.map(img => this.deleteImageFile(img)));
-            const failedDeletions = deletionResults.filter(res => res.message !== 'File deleted successfully');
+            const imageArray = product.image.split(',').map((img) => img.trim());
+            const deletionResults = await Promise.all(imageArray.map((img) => this.deleteImageFile(img)));
+            const failedDeletions = deletionResults.filter((res) => res.message !== 'File deleted successfully');
             if (failedDeletions.length > 0) {
-                const failedMessages = failedDeletions.map(res => res.message).join('; ');
+                const failedMessages = failedDeletions
+                    .map((res) => res.message)
+                    .join('; ');
                 return { message: `Product deletion aborted: ${failedMessages}` };
             }
         }
         try {
             await this.productRepo.delete(id);
-            return { message: "Product removed successfully" };
+            return { message: 'Product removed successfully' };
         }
         catch (error) {
-            console.error("Error removing product:", error.message);
+            console.error('Error removing product:', error.message);
             throw new common_1.InternalServerErrorException('Error removing product');
         }
     }
     async deleteImageFile(imagePath) {
-        console.log("imagePath", imagePath);
+        console.log('imagePath', imagePath);
         if (!imagePath) {
             return { message: 'No image path provided' };
         }
@@ -284,31 +321,47 @@ let ProductService = class ProductService {
             imagePath = imagePath.replace('https:/', 'https://');
         }
         const fileName = path.basename(imagePath);
-        console.log("basename:", fileName);
+        console.log('basename:', fileName);
         const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
         let uploadDir = process.env.Product_Image_Destination || '';
-        if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+        if (isProduction &&
+            process.env.Host_url &&
+            imagePath.startsWith(process.env.Host_url)) {
             uploadDir = process.env.Host_path
                 ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
                 : uploadDir;
         }
         const localImagePath = path.join(uploadDir, fileName);
-        console.log("Resolved path for deletion:", localImagePath);
+        console.log('Resolved path for deletion:', localImagePath);
         try {
             await fs_1.promises.access(localImagePath);
         }
         catch (err) {
-            console.error("File not found:", localImagePath);
+            console.error('File not found:', localImagePath);
             return { message: 'File not found' };
         }
         try {
             await fs_1.promises.unlink(localImagePath);
-            console.log("File deleted:", fileName);
+            console.log('File deleted:', fileName);
             return { message: 'File deleted successfully' };
         }
         catch (err) {
-            console.error("Failed to delete:", localImagePath, err);
+            console.error('Failed to delete:', localImagePath, err);
             return { message: 'Failed to delete file' };
+        }
+    }
+    async ForcefullyDelete(id) {
+        const product = await this.productRepo.findOne({ where: { Id: id } });
+        if (!product) {
+            throw new common_1.NotFoundException(`Product with ID ${id} not found`);
+        }
+        try {
+            await this.productRepo.delete(id);
+            return { message: 'Product removed successfully' };
+        }
+        catch (error) {
+            console.error('Error removing product:', error.message);
+            throw new common_1.InternalServerErrorException('Error removing product');
         }
     }
 };

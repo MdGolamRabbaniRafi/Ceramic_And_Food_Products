@@ -20,4 +20,7 @@ export declare class ProductService {
     deleteImageFile(imagePath: string): Promise<{
         message: string;
     }>;
+    ForcefullyDelete(id: number): Promise<{
+        message: string;
+    }>;
 }

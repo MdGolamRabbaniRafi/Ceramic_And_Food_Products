@@ -136,6 +136,9 @@ let ProductController = class ProductController {
     async deleteProduct(id) {
         return await this.productService.deleteProduct(id);
     }
+    async ForcefullyDelete(id) {
+        return await this.productService.ForcefullyDelete(id);
+    }
 };
 exports.ProductController = ProductController;
 __decorate([
@@ -228,6 +231,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "deleteProduct", null);
+__decorate([
+    (0, common_1.Delete)('/ForcefullyDelete/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "ForcefullyDelete", null);
 exports.ProductController = ProductController = __decorate([
     (0, common_1.Controller)('Product'),
     __metadata("design:paramtypes", [Product_service_1.ProductService])

@@ -18,4 +18,7 @@ export declare class ProductController {
     deleteProduct(id: number): Promise<{
         message: string;
     }>;
+    ForcefullyDelete(id: number): Promise<{
+        message: string;
+    }>;
 }
