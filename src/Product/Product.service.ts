@@ -33,7 +33,7 @@ export class ProductService {
   async SearchByID(Id: number): Promise<any | null> {
     const productEntity = await this.productRepo.findOne({
       where: { Id },
-      relations: ['discount'],
+      relations: ['discount', 'category'],
     });
 
     if (!productEntity) {
@@ -114,7 +114,7 @@ export class ProductService {
   async SearchByIDWithoutDiscount(Id: number): Promise<ProductEntity | null> {
     let productEntity = await this.productRepo.findOne({
       where: { Id },
-      relations: ['discount'],
+      relations: ['discount', 'category'],
     });
 
     if (productEntity) {
@@ -135,7 +135,7 @@ export class ProductService {
 
   async Search(): Promise<ProductEntity[] | null> {
     const productEntities = await this.productRepo.find({
-      relations: ['discount'],
+      relations: ['discount', 'category'],
     });
 
     if (productEntities.length >= 0) {
@@ -175,7 +175,7 @@ export class ProductService {
   async SearchByCategoryID(categoryId: number): Promise<any[] | null> {
     const productEntities = await this.productRepo.find({
       where: { category: { Id: categoryId } },
-      relations: ['discount'],
+      relations: ['discount', 'category'],
     });
 
     if (productEntities.length > 0) {

@@ -33,7 +33,7 @@ let ProductService = class ProductService {
     async SearchByID(Id) {
         const productEntity = await this.productRepo.findOne({
             where: { Id },
-            relations: ['discount'],
+            relations: ['discount', 'category'],
         });
         if (!productEntity) {
             return null;
@@ -59,7 +59,7 @@ let ProductService = class ProductService {
     async SearchByIDWithoutDiscount(Id) {
         let productEntity = await this.productRepo.findOne({
             where: { Id },
-            relations: ['discount'],
+            relations: ['discount', 'category'],
         });
         if (productEntity) {
             return productEntity;
@@ -68,7 +68,7 @@ let ProductService = class ProductService {
     }
     async Search() {
         const productEntities = await this.productRepo.find({
-            relations: ['discount'],
+            relations: ['discount', 'category'],
         });
         if (productEntities.length >= 0) {
             productEntities.forEach((product) => {
@@ -94,7 +94,7 @@ let ProductService = class ProductService {
     async SearchByCategoryID(categoryId) {
         const productEntities = await this.productRepo.find({
             where: { category: { Id: categoryId } },
-            relations: ['discount'],
+            relations: ['discount', 'category'],
         });
         if (productEntities.length > 0) {
             productEntities.forEach((product) => {
