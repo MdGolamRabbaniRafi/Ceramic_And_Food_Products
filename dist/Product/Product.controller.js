@@ -37,12 +37,12 @@ let ProductController = class ProductController {
             };
             return productWithImages;
         }
-        return { message: "Product not found" };
+        return { message: 'Product not found' };
     }
     async Search() {
         const productEntities = await this.productService.Search();
         if (productEntities) {
-            const productsWithImages = productEntities.map(product => {
+            const productsWithImages = productEntities.map((product) => {
                 return {
                     ...product,
                     image: product.image.split(',').map((filename) => {
@@ -58,7 +58,7 @@ let ProductController = class ProductController {
     async SearchByCategoryID(Id) {
         const productEntities = await this.productService.SearchByCategoryID(Id);
         if (productEntities) {
-            const productsWithImages = productEntities.map(product => {
+            const productsWithImages = productEntities.map((product) => {
                 return {
                     ...product,
                     image: product.image.split(',').map((filename) => {
@@ -69,19 +69,19 @@ let ProductController = class ProductController {
             });
             return productsWithImages;
         }
-        return { message: "Not found" };
+        return { message: 'Not found' };
     }
     async addProduct(files, req) {
         const { name, desc, price, quantity, date, json_attribute, categoryId } = req.body;
-        let imageUrls = "";
-        const urls = files.map(file => {
+        let imageUrls = '';
+        const urls = files.map((file) => {
             let imageBaseUrl = process.env.Product_Image_Destination;
             imageBaseUrl = `${imageBaseUrl}${file.filename}`;
             const trimmedPath = imageBaseUrl.replace(process.env.Host_path, '');
             const isProduction = process.env.NODE_ENV === 'production';
             let finalUrl;
             if (isProduction) {
-                finalUrl = `https://${trimmedPath}`;
+                finalUrl = `${process.env.Host_url}${trimmedPath}`;
             }
             else {
                 finalUrl = trimmedPath;
@@ -101,8 +101,8 @@ let ProductController = class ProductController {
         return await this.productService.addProduct(productData);
     }
     async editProduct(id, files, req) {
-        let imageUrls = "";
-        const urls = files.map(file => {
+        let imageUrls = '';
+        const urls = files.map((file) => {
             let imageBaseUrl = process.env.Product_Image_Destination;
             imageBaseUrl = `${imageBaseUrl}${file.filename}`;
             const trimmedPath = imageBaseUrl.replace(process.env.Host_path, '');
@@ -129,9 +129,7 @@ let ProductController = class ProductController {
             ...(req.body.categoryId && {
                 category: { Id: req.body.categoryId },
             }),
-            image: files.length > 0
-                ? imageUrls
-                : undefined,
+            image: files.length > 0 ? imageUrls : undefined,
         };
         return await this.productService.editProduct(id, productData);
     }
@@ -181,7 +179,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
@@ -209,7 +207,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
