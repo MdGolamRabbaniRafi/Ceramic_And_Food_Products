@@ -241,4 +241,11 @@ export class ProductController {
   ): Promise<{ message: string }> {
     return await this.productService.deleteProduct(id);
   }
+
+    @Delete('/ForcefullyDelete/:id')
+  async ForcefullyDelete(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ message: string }> {
+    return await this.productService.ForcefullyDelete(id);
+  }
 }
