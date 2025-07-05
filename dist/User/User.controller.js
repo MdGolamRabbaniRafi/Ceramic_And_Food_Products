@@ -54,6 +54,9 @@ let UserController = class UserController {
     async ChangePassword(Id, Password) {
         return await this.userService.ChangePassword(Password, Id);
     }
+    async newPassword(Id, newPassword) {
+        return await this.userService.newPassword(newPassword, Id);
+    }
     async Search() {
         return await this.userService.getAllUsers();
     }
@@ -146,6 +149,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "ChangePassword", null);
+__decorate([
+    (0, common_1.Put)('/newPassword/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('newPassword')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "newPassword", null);
 __decorate([
     (0, common_1.Get)('/Search'),
     __metadata("design:type", Function),

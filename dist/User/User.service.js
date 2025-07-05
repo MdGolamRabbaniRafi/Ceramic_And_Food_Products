@@ -157,6 +157,19 @@ let UserService = class UserService {
             return { message: 'Error updating password' };
         }
     }
+    async newPassword(newPassword, Id) {
+        const findUser = await this.SearchByID(Id);
+        if (findUser != null) {
+            const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+            const result = await this.userRepo.update(Id, {
+                password: hashedNewPassword,
+            });
+            if (result.affected > 0) {
+                return { message: 'Password updated successfully' };
+            }
+            return { message: 'Error updating password' };
+        }
+    }
     async SignUp(userEntity) {
         try {
             const saltRounds = 10;

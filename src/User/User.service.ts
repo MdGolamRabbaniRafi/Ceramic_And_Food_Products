@@ -213,6 +213,31 @@ export class UserService {
       return { message: 'Error updating password' };
     }
   }
+
+
+
+
+   async newPassword(
+    newPassword: string ,
+    Id: number,
+  ): Promise<any> {
+    const findUser = await this.SearchByID(Id);
+
+    if (findUser != null) {
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10); // Salt rounds = 10
+
+      // Update the user's password with the hashed new password
+      const result = await this.userRepo.update(Id, {
+        password: hashedNewPassword,
+      });
+
+      if (result.affected > 0) {
+        return { message: 'Password updated successfully' };
+      }
+
+      return { message: 'Error updating password' };
+    }
+  }
   // async SignUp(userEntity: UserEntity): Promise<UserEntity | boolean> {
   //   try {
   //     const saltRounds = 10;

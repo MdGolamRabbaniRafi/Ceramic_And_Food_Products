@@ -17,6 +17,7 @@ export declare class UserController {
         oldPassword: string;
         newPassword: string;
     }): Promise<any>;
+    newPassword(Id: number, newPassword: string): Promise<any>;
     Search(): Promise<UserEntity[] | null>;
     deleteUser(Id: number): Promise<{
         message: string;

@@ -19,6 +19,7 @@ export declare class UserService {
         oldPassword: string;
         newPassword: string;
     }, Id: number): Promise<any>;
+    newPassword(newPassword: string, Id: number): Promise<any>;
     SignUp(userEntity: UserEntity): Promise<UserEntity | boolean>;
     deleteUser(Id: number): Promise<boolean>;
     forceFullyDelete(Id: number): Promise<boolean>;

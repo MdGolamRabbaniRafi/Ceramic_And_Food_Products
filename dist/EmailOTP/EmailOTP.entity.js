@@ -20,23 +20,23 @@ __decorate([
     __metadata("design:type", Number)
 ], OTPEntity.prototype, "Id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'otp', type: "varchar" }),
+    (0, typeorm_1.Column)({ name: 'otp', type: 'varchar' }),
     __metadata("design:type", String)
 ], OTPEntity.prototype, "OTP", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'Expire_Time', type: "timestamp" }),
+    (0, typeorm_1.Column)({ name: 'Expire_Time', type: 'timestamp' }),
     (0, typeorm_1.Index)(),
     __metadata("design:type", Date)
 ], OTPEntity.prototype, "Expire_Time", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'Email', type: "varchar" }),
+    (0, typeorm_1.Column)({ name: 'Email', type: 'varchar' }),
     __metadata("design:type", String)
 ], OTPEntity.prototype, "EMAIL", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'user', type: "json" }),
+    (0, typeorm_1.Column)({ name: 'user', type: 'json', nullable: true }),
     __metadata("design:type", User_entity_1.UserEntity)
 ], OTPEntity.prototype, "User", void 0);
 exports.OTPEntity = OTPEntity = __decorate([
-    (0, typeorm_1.Entity)("OTP")
+    (0, typeorm_1.Entity)('OTP')
 ], OTPEntity);
 //# sourceMappingURL=EmailOTP.entity.js.map

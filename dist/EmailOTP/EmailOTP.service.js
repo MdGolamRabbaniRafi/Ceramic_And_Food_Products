@@ -80,7 +80,7 @@ let EmailOTPService = class EmailOTPService {
                     EMAIL: to,
                     OTP: otp,
                     Expire_Time: expireTime,
-                    User: null
+                    User: user.length > 0 ? user[0] : null,
                 });
                 await this.otpRepo.save(newOtp);
                 return 'OTP sent successfully';
@@ -91,14 +91,14 @@ let EmailOTPService = class EmailOTPService {
             }
         }
         else {
-            console.log("No user found with the email: " + to);
-            return "No user found with the email: " + to;
+            console.log('No user found with the email: ' + to);
+            return 'No user found with the email: ' + to;
         }
     }
     async verifyOtp(email, otp) {
         const storedOtp = await this.otpRepo.findOne({ where: { EMAIL: email } });
-        console.log("stored:" + storedOtp.OTP);
-        console.log("otp:" + otp);
+        console.log('stored:' + storedOtp.OTP);
+        console.log('otp:' + otp);
         if (!storedOtp) {
             return { message: 'Invalid OTP or OTP expired' };
         }
@@ -156,29 +156,29 @@ let EmailOTPService = class EmailOTPService {
         </body>
         </html>
       `;
-            console.log("check1");
-            console.log("Email User:", this.configService.get('EMAIL_USER'));
-            console.log("Email From:", this.configService.get('EMAIL_FROM'));
+            console.log('check1');
+            console.log('Email User:', this.configService.get('EMAIL_USER'));
+            console.log('Email From:', this.configService.get('EMAIL_FROM'));
             const response = await this.mailerService.sendMail({
                 from: this.configService.get('EMAIL_FROM'),
                 to,
                 subject: 'Signup for E-commerce',
                 html: message,
             });
-            console.log("check2");
+            console.log('check2');
             const expireTime = new Date(Date.now() + 3 * 60 * 1000);
             const newOtp = this.otpRepo.create({
                 EMAIL: to,
                 OTP: otp,
                 Expire_Time: expireTime,
-                User: userEntity
+                User: userEntity,
             });
             try {
                 await this.otpRepo.save(newOtp);
                 return 'OTP sent successfully';
             }
             catch {
-                return "An error occurred";
+                return 'An error occurred';
             }
         }
         catch (error) {

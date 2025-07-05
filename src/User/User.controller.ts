@@ -111,6 +111,15 @@ export class UserController {
   ): Promise<any> {
     return await this.userService.ChangePassword(Password, Id);
   }
+
+  @Put('/newPassword/:id')
+  async newPassword(
+    @Param('id', ParseIntPipe) Id: number,
+    @Body('newPassword') newPassword: string,
+  ): Promise<any> {
+    return await this.userService.newPassword(newPassword, Id);
+  }
+
   @Get('/Search')
   async Search(): Promise<UserEntity[] | null> {
     return await this.userService.getAllUsers();
@@ -128,7 +137,6 @@ export class UserController {
     }
   }
 
-  
   @Delete('/forceFullyDelete/:id')
   async forceFullyDelete(
     @Param('id', ParseIntPipe) Id: number,

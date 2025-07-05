@@ -1,4 +1,4 @@
-import { UserEntity } from "src/User/User.entity";
+import { UserEntity } from 'src/User/User.entity';
 export declare class OTPEntity {
     Id: number;
     OTP: string;

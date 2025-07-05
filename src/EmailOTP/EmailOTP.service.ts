@@ -16,21 +16,15 @@ export class EmailOTPService {
     @InjectRepository(UserEntity)
     private userRepo: Repository<UserEntity>,
     // private readonly redisService: RedisService,
-    private readonly configService: ConfigService 
+    private readonly configService: ConfigService,
   ) {}
-
-
-
-
-
-
-
 
   async sendOtpEmail(to: string): Promise<any> {
     // console.log("Sending OTP to email: " + to);
-    
+
     const user = await this.userRepo.find({ where: { email: to } });
-    if (user.length > 0) { // If user array is not empty
+    if (user.length > 0) {
+      // If user array is not empty
       try {
         const otp = this.generateOtp();
         const message = `
@@ -70,70 +64,69 @@ export class EmailOTPService {
         </body>
         </html>
       `;
-      // console.log("1st check")
-      //   console.log("Sending email...");
-        
-       const response= await this.mailerService.sendMail({
-        from:  this.configService.get<string>('EMAIL_FROM'),
+        // console.log("1st check")
+        //   console.log("Sending email...");
+
+        const response = await this.mailerService.sendMail({
+          from: this.configService.get<string>('EMAIL_FROM'),
           to,
           subject: 'Forget Password for E-commerce',
           html: message,
         });
-        
+
         // console.log("Email sent successfully"+JSON.stringify(response));
-        
-       // await this.redisService.storeOtp(to, otp, 180);
-       const expireTime = new Date(Date.now() + 3 * 60 * 1000);
-       const newOtp = this.otpRepo.create({
-         EMAIL: to,  // Ensure the property matches your entity's column
-         OTP: otp,   // Ensure this matches your entity's column
-         Expire_Time: expireTime,
-         User:null
-       });
-       await this.otpRepo.save(newOtp); 
+
+        // await this.redisService.storeOtp(to, otp, 180);
+        const expireTime = new Date(Date.now() + 3 * 60 * 1000);
+        const newOtp = this.otpRepo.create({
+          EMAIL: to, // Ensure the property matches your entity's column
+          OTP: otp, // Ensure this matches your entity's column
+          Expire_Time: expireTime,
+          User: user.length > 0 ? user[0] : null,
+        });
+        await this.otpRepo.save(newOtp);
         return 'OTP sent successfully';
-        
       } catch (error) {
         console.error('Error sending OTP email:', error);
         return "Email didn't send: " + error.message;
       }
     } else {
-      console.log("No user found with the email: " + to);
-      return "No user found with the email: " + to;
+      console.log('No user found with the email: ' + to);
+      return 'No user found with the email: ' + to;
     }
   }
-  async verifyOtp(email: string, otp: string): Promise<{ message: string, user?: UserEntity }> {
+  async verifyOtp(
+    email: string,
+    otp: string,
+  ): Promise<{ message: string; user?: UserEntity }> {
     const storedOtp = await this.otpRepo.findOne({ where: { EMAIL: email } });
-    console.log("stored:"+ storedOtp.OTP);
-        console.log("otp:"+ otp);
+    console.log('stored:' + storedOtp.OTP);
+    console.log('otp:' + otp);
 
-  
     if (!storedOtp) {
       return { message: 'Invalid OTP or OTP expired' };
     }
-  
-    if (storedOtp.OTP !== otp) {
-    //  return { message: 'Invalid OTP. otp:'+otp+" stored otp: "+storedOtp.OTP };
-            return { message: 'Invalid OTP.'};
 
+    if (storedOtp.OTP !== otp) {
+      //  return { message: 'Invalid OTP. otp:'+otp+" stored otp: "+storedOtp.OTP };
+      return { message: 'Invalid OTP.' };
     }
-  
+
     if (new Date(storedOtp.Expire_Time) < new Date()) {
       return { message: 'OTP expired' };
     }
-  
+
     const user = storedOtp.User;
-  
+
     // Delete OTP after successful verification
     await this.otpRepo.delete({ EMAIL: email });
-  
+
     return {
       message: 'OTP verified successfully',
       user: user,
     };
   }
-  
-  
+
   async sendOtpEmailForSignup(userEntity: UserEntity): Promise<any> {
     try {
       const to = userEntity.email;
@@ -175,45 +168,39 @@ export class EmailOTPService {
         </body>
         </html>
       `;
-      console.log("check1");
-      console.log("Email User:", this.configService.get<string>('EMAIL_USER'));
-console.log("Email From:", this.configService.get<string>('EMAIL_FROM'));
+      console.log('check1');
+      console.log('Email User:', this.configService.get<string>('EMAIL_USER'));
+      console.log('Email From:', this.configService.get<string>('EMAIL_FROM'));
 
       const response = await this.mailerService.sendMail({
         from: this.configService.get<string>('EMAIL_FROM'),
         to,
         subject: 'Signup for E-commerce',
         html: message,
-        
       });
-      console.log("check2");
-
+      console.log('check2');
 
       // Store the OTP and user details in Redis
-     // await this.redisService.storeOtp(to, otp, 180);
-     // const redisResponse = await this.redisService.storeUserDetails(to, userEntity, otp, 300);
-     const expireTime = new Date(Date.now() + 3 * 60 * 1000);
-     const newOtp = this.otpRepo.create({
-       EMAIL: to,  // Ensure the property matches your entity's column
-       OTP: otp,   // Ensure this matches your entity's column
-       Expire_Time: expireTime,
-       User: userEntity
-     });
-     try{
-      await this.otpRepo.save(newOtp); 
-      return 'OTP sent successfully';
-
-     }
-     catch{
-      return "An error occurred";
-
-     }
+      // await this.redisService.storeOtp(to, otp, 180);
+      // const redisResponse = await this.redisService.storeUserDetails(to, userEntity, otp, 300);
+      const expireTime = new Date(Date.now() + 3 * 60 * 1000);
+      const newOtp = this.otpRepo.create({
+        EMAIL: to, // Ensure the property matches your entity's column
+        OTP: otp, // Ensure this matches your entity's column
+        Expire_Time: expireTime,
+        User: userEntity,
+      });
+      try {
+        await this.otpRepo.save(newOtp);
+        return 'OTP sent successfully';
+      } catch {
+        return 'An error occurred';
+      }
       // if (redisResponse.message === 'User details and OTP stored') {
       //   return 'OTP sent successfully';
       // } else {
       //   return "An error occurred";
       // }
-
     } catch (error) {
       console.error('Error sending OTP email:', error);
       return "Email didn't send: " + error.message;
