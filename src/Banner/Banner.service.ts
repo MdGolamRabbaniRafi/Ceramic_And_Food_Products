@@ -12,16 +12,23 @@ export class BannerService {
   constructor(
     @InjectRepository(BannerEntity)
     private BannerRepo: Repository<BannerEntity>,
-  ) { }
+  ) {}
   getHello(): string {
     return 'Hello Banner!';
   }
+
   async findById(id: number): Promise<BannerEntity | null> {
-    let BannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
-    if (BannerEntity != null) {
-      return BannerEntity;
+    const bannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
+
+    if (bannerEntity != null && typeof bannerEntity.path === 'string') {
+      const normalizedPath = normalize(bannerEntity.path).replace(/\\/g, '/');
+
+      // Remove domain or full path and convert to "https:/Upload/Banner/..."
+      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      bannerEntity.path = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
     }
-    return null;
+
+    return bannerEntity;
   }
 
   // async addMultiple(bannerData: { fileName: string; path: string; eventLink: string }[]): Promise<boolean> {
@@ -38,7 +45,11 @@ export class BannerService {
   //   const savedBanners = await this.BannerRepo.save(banners);
   //   return savedBanners.length > 0;
   // }
-  async addSingle(bannerData: { fileName: string; path: string; eventLink: string }): Promise<BannerEntity> {
+  async addSingle(bannerData: {
+    fileName: string;
+    path: string;
+    eventLink: string;
+  }): Promise<BannerEntity> {
     const banner = new BannerEntity();
     banner.FileName = bannerData.fileName;
     banner.path = bannerData.path;
@@ -47,7 +58,6 @@ export class BannerService {
     const savedBanner = await this.BannerRepo.save(banner);
     return savedBanner;
   }
-
 
   // async removeAllFromFolder(): Promise<boolean> {
   //   try {
@@ -88,98 +98,111 @@ export class BannerService {
   async getAll(): Promise<any[]> {
     const response = await this.BannerRepo.find();
 
-    const updatedResponse = response.map(item => {
-      const userImage = normalize(item.path).replace(/\\/g, '/');
+    const updatedResponse = response.map((item) => {
+      const normalizedPath = normalize(item.path).replace(/\\/g, '/');
+
+      // Remove domain or base path and format as "https:/Upload/Banner/..."
+      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      const finalPath = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+
       return {
         ...item,
-        path: userImage
+        path: finalPath,
       };
     });
 
     return updatedResponse;
   }
 
-async deleteImageFile(imagePath: string): Promise<{ message: string }> {
-  if (!imagePath) {
-    return { message: 'No image path provided' };
-  }
-
-  // Normalize incorrect slashes
-  if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
-    imagePath = imagePath.replace('https:/', 'https://');
-  }
-
-  // Extract filename from URL
-  const fileName = path.basename(imagePath);
-  console.log("basename:", fileName);
-
-  // Determine environment
-  const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
-
-  // Get upload path from .env
-  let uploadDir = process.env.Banner_Image_Destination || '';
-
-  // If in production and image path starts with Host_url, convert URL to local path
-  if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
-    uploadDir = process.env.Host_path
-      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
-      : uploadDir;
-  }
-
-  // Construct local file path
-  const localImagePath = path.join(uploadDir, fileName);
-  console.log("Resolved path for deletion:", localImagePath);
-
-  // Check if file exists
-  try {
-    await fs.access(localImagePath);
-  } catch (err) {
-    console.error("File not found:", localImagePath);
-    return { message: 'File not found' };
-  }
-
-  // Attempt deletion
-  try {
-    await fs.unlink(localImagePath);
-    console.log("File deleted:", fileName);
-    return { message: 'File deleted successfully' };
-  } catch (err) {
-    console.error("Failed to delete:", localImagePath, err);
-    return { message: 'Failed to delete file' };
-  }
-}
-
-
-
-
-async editBanner(id: number, updatedData: { fileName?: string; path?: string; eventLink?: string }): Promise<{ message: string; banner?: BannerEntity }> {
-  const banner = await this.findById(id);
-  if (!banner) {
-    return { message: 'Banner not found' };
-  }
-
-  if (updatedData.fileName && updatedData.path) {
-    const oldFilePath = banner.path;
-    const deleteFile = await this.deleteImageFile(oldFilePath);
-
-    // ✅ Only continue if old image was successfully deleted
-    if (deleteFile.message !== 'File deleted successfully') {
-      return deleteFile;
+  async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+    if (!imagePath) {
+      return { message: 'No image path provided' };
     }
 
-    banner.FileName = updatedData.fileName;
-    banner.path = updatedData.path;
-
-    if (updatedData.eventLink) {
-      banner.EventLink = updatedData.eventLink;
+    // Normalize incorrect slashes
+    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+      imagePath = imagePath.replace('https:/', 'https://');
     }
 
-    const updatedBanner = await this.BannerRepo.save(banner);
-    return { message: 'Banner updated successfully', banner: updatedBanner };
+    // Extract filename from URL
+    const fileName = path.basename(imagePath);
+    console.log('basename:', fileName);
+
+    // Determine environment
+    const isProduction =
+      process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+
+    // Get upload path from .env
+    let uploadDir = process.env.Banner_Image_Destination || '';
+
+    // If in production and image path starts with Host_url, convert URL to local path
+    if (
+      isProduction &&
+      process.env.Host_url &&
+      imagePath.startsWith(process.env.Host_url)
+    ) {
+      uploadDir = process.env.Host_path
+        ? path.join(
+            process.env.Host_path,
+            uploadDir.replace(process.env.Host_path, ''),
+          )
+        : uploadDir;
+    }
+
+    // Construct local file path
+    const localImagePath = path.join(uploadDir, fileName);
+    console.log('Resolved path for deletion:', localImagePath);
+
+    // Check if file exists
+    try {
+      await fs.access(localImagePath);
+    } catch (err) {
+      console.error('File not found:', localImagePath);
+      return { message: 'File not found' };
+    }
+
+    // Attempt deletion
+    try {
+      await fs.unlink(localImagePath);
+      console.log('File deleted:', fileName);
+      return { message: 'File deleted successfully' };
+    } catch (err) {
+      console.error('Failed to delete:', localImagePath, err);
+      return { message: 'Failed to delete file' };
+    }
   }
 
-  return { message: 'File data not provided' };
-}
+  async editBanner(
+    id: number,
+    updatedData: { fileName?: string; path?: string; eventLink?: string },
+  ): Promise<{ message: string; banner?: BannerEntity }> {
+    const banner = await this.findById(id);
+    if (!banner) {
+      return { message: 'Banner not found' };
+    }
+
+    if (updatedData.fileName && updatedData.path) {
+      const oldFilePath = banner.path;
+      const deleteFile = await this.deleteImageFile(oldFilePath);
+
+      // ✅ Only continue if old image was successfully deleted
+      if (deleteFile.message !== 'File deleted successfully') {
+        return deleteFile;
+      }
+
+      banner.FileName = updatedData.fileName;
+      banner.path = updatedData.path;
+
+      if (updatedData.eventLink) {
+        banner.EventLink = updatedData.eventLink;
+      }
+
+      const updatedBanner = await this.BannerRepo.save(banner);
+      return { message: 'Banner updated successfully', banner: updatedBanner };
+    }
+
+    return { message: 'File data not provided' };
+  }
 
   async deleteBanner(id: number): Promise<boolean> {
     const banner = await this.findById(id);
@@ -210,5 +233,4 @@ async editBanner(id: number, updatedData: { fileName?: string; path?: string; ev
   //       }
   //     });
   //   }
-
 }

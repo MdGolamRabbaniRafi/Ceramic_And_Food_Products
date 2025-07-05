@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as fs from 'fs';
 import { diskStorage, MulterError } from 'multer';
@@ -6,10 +16,9 @@ import { extname, resolve } from 'path';
 import { OfferEntity } from './Offer.entity';
 import { OfferService } from './Offer.service';
 
-
 @Controller('offers')
 export class OfferController {
-  constructor(private readonly offerService: OfferService) { }
+  constructor(private readonly offerService: OfferService) {}
 
   @Post('add')
   @UseInterceptors(
@@ -19,7 +28,10 @@ export class OfferController {
           let urlPath = process.env.Offer_Image_Destination;
 
           if (urlPath.startsWith(process.env.Host_url)) {
-            const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
+            const localPath = urlPath.replace(
+              process.env.Host_url,
+              process.env.Host_path,
+            );
             const resolvedPath = resolve(localPath);
             if (!fs.existsSync(resolvedPath)) {
               fs.mkdirSync(resolvedPath, { recursive: true });
@@ -36,7 +48,8 @@ export class OfferController {
           }
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const extension = extname(file.originalname);
           const filename = `${uniqueSuffix}${extension}`;
           cb(null, filename);
@@ -44,7 +57,10 @@ export class OfferController {
       }),
     }),
   )
-  async createOffer(@UploadedFile() file: Express.Multer.File, @Body() body: any): Promise<OfferEntity> {
+  async createOffer(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ): Promise<OfferEntity> {
     // Check if the file is provided
     if (!file) {
       throw new Error('No file uploaded.');
@@ -58,14 +74,13 @@ export class OfferController {
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
 
     if (isProduction) {
-      finalUrl = `https://${trimmedPath}`;
-    }
-    else {
+      finalUrl = `${process.env.Host_url}${trimmedPath}`;
+    } else {
       finalUrl = trimmedPath;
     }
 
     const detailsObject = JSON.parse(body.Details);
-    console.log(detailsObject)
+    console.log(detailsObject);
 
     const data = {
       name: body.name,
@@ -73,13 +88,10 @@ export class OfferController {
       image: finalUrl,
       Details: detailsObject, // This will store it as an object in the database
     };
-    console.log(data.Details)
+    console.log(data.Details);
 
     return this.offerService.createOffer(data);
   }
-
-
-
 
   @Get()
   async getAllOffers(): Promise<OfferEntity[]> {
@@ -87,7 +99,9 @@ export class OfferController {
   }
 
   @Get(':id')
-  async getOfferById(@Param('id') id: number): Promise<OfferEntity | { message: string }> {
+  async getOfferById(
+    @Param('id') id: number,
+  ): Promise<OfferEntity | { message: string }> {
     return this.offerService.getOfferById(id);
   }
 
@@ -99,7 +113,10 @@ export class OfferController {
           let urlPath = process.env.Offer_Image_Destination;
 
           if (urlPath.startsWith(process.env.Host_url)) {
-            const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
+            const localPath = urlPath.replace(
+              process.env.Host_url,
+              process.env.Host_path,
+            );
             const resolvedPath = resolve(localPath);
             if (!fs.existsSync(resolvedPath)) {
               fs.mkdirSync(resolvedPath, { recursive: true });
@@ -116,7 +133,8 @@ export class OfferController {
           }
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const extension = extname(file.originalname);
           const filename = `${uniqueSuffix}${extension}`;
           cb(null, filename);
@@ -124,7 +142,11 @@ export class OfferController {
       }),
     }),
   )
-  async updateOffer(@UploadedFile() file: Express.Multer.File, @Param('id') id: number, @Body() body: Partial<OfferEntity>): Promise<OfferEntity | { message: string }> {
+  async updateOffer(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('id') id: number,
+    @Body() body: Partial<OfferEntity>,
+  ): Promise<OfferEntity | { message: string }> {
     if (file != null) {
       let imageUrl = process.env.Offer_Image_Destination;
       imageUrl = `${imageUrl}${file.filename}`;
@@ -133,9 +155,8 @@ export class OfferController {
       const trimmedPath = imageUrl.replace(process.env.Host_path, '');
 
       if (isProduction) {
-        finalUrl = `https://${trimmedPath}`;
-      }
-      else {
+        finalUrl = `${process.env.Host_url}${trimmedPath}`;
+      } else {
         finalUrl = trimmedPath;
       }
       body.image = finalUrl;
@@ -145,7 +166,9 @@ export class OfferController {
   }
 
   @Delete(':id')
-  async deleteOffer(@Param('id') id: number): Promise<{ message: string; success: boolean }> {
+  async deleteOffer(
+    @Param('id') id: number,
+  ): Promise<{ message: string; success: boolean }> {
     return this.offerService.deleteOffer(id);
   }
 }

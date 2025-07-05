@@ -29,13 +29,13 @@ let UserService = class UserService {
         return 'Hello User!';
     }
     async SearchByID(Id) {
-        let userEntity = await this.userRepo.findOne({ where: { Id } });
-        if (userEntity != null) {
-            const userImage = (0, path_1.normalize)(userEntity.Image).replace(/\\/g, '/');
-            userEntity.Image = userImage.replace(process.env.Host_path, process.env.Host_url);
-            return userEntity;
+        const userEntity = await this.userRepo.findOne({ where: { Id } });
+        if (userEntity != null && typeof userEntity.Image === 'string') {
+            const normalizedPath = (0, path_1.normalize)(userEntity.Image).replace(/\\/g, '/');
+            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            userEntity.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
-        return null;
+        return userEntity;
     }
     async EditUserProfileByID(Id, updatedData) {
         const result = await this.userRepo.update(Id, {
@@ -56,37 +56,39 @@ let UserService = class UserService {
             imagePath = imagePath.replace('https:/', 'https://');
         }
         const fileName = path.basename(imagePath);
-        console.log("basename:", fileName);
+        console.log('basename:', fileName);
         const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
         let uploadDir = process.env.Auth_Image_Destination || '';
-        if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+        if (isProduction &&
+            process.env.Host_url &&
+            imagePath.startsWith(process.env.Host_url)) {
             uploadDir = process.env.Host_path
                 ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
                 : uploadDir;
         }
         const localImagePath = path.join(uploadDir, fileName);
-        console.log("Resolved path for deletion:", localImagePath);
+        console.log('Resolved path for deletion:', localImagePath);
         try {
             await fs_1.promises.access(localImagePath);
         }
         catch (err) {
-            console.error("File not found:", localImagePath);
+            console.error('File not found:', localImagePath);
             return { message: 'File not found' };
         }
         try {
             await fs_1.promises.unlink(localImagePath);
-            console.log("File deleted:", fileName);
+            console.log('File deleted:', fileName);
             return { message: 'File deleted successfully' };
         }
         catch (err) {
-            console.error("Failed to delete:", localImagePath, err);
+            console.error('Failed to delete:', localImagePath, err);
             return { message: 'Failed to delete file' };
         }
     }
     async ChangeProfilePicture(Id, path) {
         const userDetails = await this.SearchByID(Id);
         const OldPath = userDetails.Image;
-        console.log("Old Path from database:", OldPath);
+        console.log('Old Path from database:', OldPath);
         const removeOldPath = await this.deleteImageFile(OldPath);
         if (removeOldPath.message != 'File deleted successfully') {
             return removeOldPath;
@@ -98,18 +100,23 @@ let UserService = class UserService {
                 return updatedUser;
             }
             else {
-                return { message: "Profile picture updated, but failed to fetch updated user details." };
+                return {
+                    message: 'Profile picture updated, but failed to fetch updated user details.',
+                };
             }
         }
         else {
-            return { message: "Failed to update profile picture in database." };
+            return { message: 'Failed to update profile picture in database.' };
         }
     }
     async getAllUsers() {
-        let userEntity = await this.userRepo.find();
-        userEntity.forEach(user => {
-            const userImage = (0, path_1.normalize)(user.Image).replace(/\\/g, '/');
-            user.Image = userImage.replace(process.env.Host_path, process.env.Host_url);
+        const userEntity = await this.userRepo.find();
+        userEntity.forEach((user) => {
+            if (typeof user.Image === 'string') {
+                const normalizedPath = (0, path_1.normalize)(user.Image).replace(/\\/g, '/');
+                const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+                user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+            }
         });
         return userEntity;
     }
@@ -137,15 +144,17 @@ let UserService = class UserService {
         const findUser = await this.SearchByID(Id);
         let HashPassword = await bcrypt.compare(Password.oldPassword, findUser.password);
         if (!HashPassword) {
-            return { message: "Incorrect Old Password" };
+            return { message: 'Incorrect Old Password' };
         }
         if (findUser != null && HashPassword) {
             const hashedNewPassword = await bcrypt.hash(Password.newPassword, 10);
-            const result = await this.userRepo.update(Id, { password: hashedNewPassword });
+            const result = await this.userRepo.update(Id, {
+                password: hashedNewPassword,
+            });
             if (result.affected > 0) {
-                return { message: "Password updated successfully" };
+                return { message: 'Password updated successfully' };
             }
-            return { message: "Error updating password" };
+            return { message: 'Error updating password' };
         }
     }
     async SignUp(userEntity) {

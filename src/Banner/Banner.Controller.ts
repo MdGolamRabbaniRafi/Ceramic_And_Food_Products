@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Req,
+  Res,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
@@ -8,7 +21,7 @@ import { BannerService } from './Banner.service';
 
 @Controller('Banner')
 export class BannerController {
-  constructor(private readonly BannerService: BannerService) { }
+  constructor(private readonly BannerService: BannerService) {}
 
   @Get()
   getHello(): string {
@@ -30,15 +43,19 @@ export class BannerController {
           // Detect CPanel or similar hosting and convert URL to local directory path dynamically
           if (urlPath.startsWith(process.env.Host_url)) {
             // Convert the public URL path to the local file system path
-            const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
-            cb(null, resolve(localPath));  // Save to the local path in the server
+            const localPath = urlPath.replace(
+              process.env.Host_url,
+              process.env.Host_path,
+            );
+            cb(null, resolve(localPath)); // Save to the local path in the server
           } else {
             // For other environments, use the resolved path as it is
             cb(null, resolve(urlPath));
           }
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const extension = extname(file.originalname);
           const filename = `${uniqueSuffix}${extension}`;
           cb(null, filename);
@@ -46,29 +63,31 @@ export class BannerController {
       }),
     }),
   )
-  async add(@UploadedFile() file: Express.Multer.File, @Req() req: any): Promise<BannerEntity> {
+  async add(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ): Promise<BannerEntity> {
     const eventLink = req.body.EventLink; // Single event link
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
 
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-        const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === 'production';
     let finalUrl: string;
     if (isProduction) {
-      finalUrl = `https://${trimmedPath}`;
-    }
-    else {
+      finalUrl = `${process.env.Host_url}${trimmedPath}`;
+    } else {
       finalUrl = trimmedPath;
-    } const Image = finalUrl;
-    // } 
-    console.log("imageUrl", imageUrl)
+    }
+    const Image = finalUrl;
+    // }
+    console.log('imageUrl', imageUrl);
 
     const bannerData = {
       fileName: file.filename,
       path: Image,
       eventLink: eventLink, // Link the file with the event link
     };
-
 
     return await this.BannerService.addSingle(bannerData);
   }
@@ -80,16 +99,8 @@ export class BannerController {
 
   @Get('/all')
   async getAllBanners(): Promise<any> {
-
     return await this.BannerService.getAll();
-
   }
-
-
-
-
-
-
 
   @Put('/edit/:id')
   @UseInterceptors(
@@ -101,15 +112,19 @@ export class BannerController {
           // Detect CPanel or similar hosting and convert URL to local directory path dynamically
           if (urlPath.startsWith(process.env.Host_url)) {
             // Convert the public URL path to the local file system path
-            const localPath = urlPath.replace(process.env.Host_url, process.env.Host_path);
-            cb(null, resolve(localPath));  // Save to the local path in the server
+            const localPath = urlPath.replace(
+              process.env.Host_url,
+              process.env.Host_path,
+            );
+            cb(null, resolve(localPath)); // Save to the local path in the server
           } else {
             // For other environments, use the resolved path as it is
             cb(null, resolve(urlPath));
           }
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const extension = extname(file.originalname);
           const filename = `${uniqueSuffix}${extension}`;
           cb(null, filename);
@@ -125,14 +140,13 @@ export class BannerController {
     let imageUrl = process.env.Banner_Image_Destination;
     imageUrl = `${imageUrl}${file.filename}`;
     const trimmedPath = imageUrl.replace(process.env.Host_path, '');
-        const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === 'production';
     let finalUrl: string;
     if (isProduction) {
-      finalUrl = `https://${trimmedPath}`;
-    }
-    else {
+      finalUrl = `${process.env.Host_url}${trimmedPath}`;
+    } else {
       finalUrl = trimmedPath;
-    }  
+    }
     const Image = finalUrl;
     const updatedBannerData = {
       fileName: file ? file.filename : null,
@@ -144,20 +158,29 @@ export class BannerController {
   }
 
   @Delete('/delete/:id')
-  async deleteBanner(@Param('id') id: number, @Res() res: Response): Promise<any> {
+  async deleteBanner(
+    @Param('id') id: number,
+    @Res() res: Response,
+  ): Promise<any> {
     try {
       const result = await this.BannerService.deleteBanner(id);
 
       if (result) {
-        return res.status(200).json({ success: true, message: 'Banner deleted successfully' });
+        return res
+          .status(200)
+          .json({ success: true, message: 'Banner deleted successfully' });
       } else {
-        return res.status(404).json({ success: false, message: 'Banner not found or deletion failed' });
+        return res.status(404).json({
+          success: false,
+          message: 'Banner not found or deletion failed',
+        });
       }
     } catch (error) {
-      return res.status(500).json({ success: false, message: 'An error occurred during deletion', error: error.message });
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred during deletion',
+        error: error.message,
+      });
     }
   }
-
-
-
 }

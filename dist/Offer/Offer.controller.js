@@ -33,7 +33,7 @@ let OfferController = class OfferController {
         let finalUrl;
         const trimmedPath = imageUrl.replace(process.env.Host_path, '');
         if (isProduction) {
-            finalUrl = `https://${trimmedPath}`;
+            finalUrl = `${process.env.Host_url}${trimmedPath}`;
         }
         else {
             finalUrl = trimmedPath;
@@ -63,7 +63,7 @@ let OfferController = class OfferController {
             let finalUrl;
             const trimmedPath = imageUrl.replace(process.env.Host_path, '');
             if (isProduction) {
-                finalUrl = `https://${trimmedPath}`;
+                finalUrl = `${process.env.Host_url}${trimmedPath}`;
             }
             else {
                 finalUrl = trimmedPath;
@@ -100,7 +100,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
@@ -149,7 +149,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);

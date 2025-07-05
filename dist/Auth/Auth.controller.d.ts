@@ -1,5 +1,5 @@
-import { UserEntity } from "src/User/User.entity";
-import { AuthService } from "./Auth.service";
+import { UserEntity } from 'src/User/User.entity';
+import { AuthService } from './Auth.service';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);

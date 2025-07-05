@@ -43,7 +43,7 @@ let UserController = class UserController {
         const isProduction = process.env.NODE_ENV === 'production';
         let finalUrl;
         if (isProduction) {
-            finalUrl = `https://${trimmedPath}`;
+            finalUrl = `${process.env.Host_url}${trimmedPath}`;
         }
         else {
             finalUrl = trimmedPath;
@@ -116,12 +116,12 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
-            }
-        })
+            },
+        }),
     })),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.UploadedFile)()),

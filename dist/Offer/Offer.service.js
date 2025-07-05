@@ -19,6 +19,7 @@ const typeorm_2 = require("typeorm");
 const Offer_entity_1 = require("./Offer.entity");
 const fs_1 = require("fs");
 const path = require("path");
+const path_1 = require("path");
 let OfferService = class OfferService {
     constructor(offerRepository) {
         this.offerRepository = offerRepository;
@@ -37,7 +38,9 @@ let OfferService = class OfferService {
         const fileName = path.basename(imagePath);
         const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
         let uploadDir = process.env.Offer_Image_Destination || '';
-        if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+        if (isProduction &&
+            process.env.Host_url &&
+            imagePath.startsWith(process.env.Host_url)) {
             uploadDir = process.env.Host_path
                 ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
                 : uploadDir;
@@ -47,27 +50,40 @@ let OfferService = class OfferService {
             await fs_1.promises.access(localImagePath);
         }
         catch (err) {
-            console.error("File not found:", localImagePath);
+            console.error('File not found:', localImagePath);
             return { message: 'File not found' };
         }
         try {
             await fs_1.promises.unlink(localImagePath);
-            console.log("File deleted:", fileName);
+            console.log('File deleted:', fileName);
             return { message: 'File deleted successfully' };
         }
         catch (err) {
-            console.error("Failed to delete:", localImagePath, err);
+            console.error('Failed to delete:', localImagePath, err);
             return { message: 'Failed to delete file' };
         }
     }
     async getAllOffers() {
         const offers = await this.offerRepository.find();
-        return offers;
+        const updatedOffers = offers.map((offer) => {
+            if (typeof offer.image === 'string') {
+                const normalizedPath = (0, path_1.normalize)(offer.image).replace(/\\/g, '/');
+                const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+                offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+            }
+            return offer;
+        });
+        return updatedOffers;
     }
     async getOfferById(id) {
         const offer = await this.offerRepository.findOne({ where: { id } });
         if (!offer) {
-            return { message: "Not found" };
+            return { message: 'Not found' };
+        }
+        if (typeof offer.image === 'string') {
+            const normalizedPath = (0, path_1.normalize)(offer.image).replace(/\\/g, '/');
+            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
         return offer;
     }
@@ -78,7 +94,7 @@ let OfferService = class OfferService {
                 return offer;
             }
             const check = await this.deleteImageFile(offer.image);
-            if (check.message != "File deleted successfully") {
+            if (check.message != 'File deleted successfully') {
                 return { message: check.message };
             }
         }
@@ -92,13 +108,16 @@ let OfferService = class OfferService {
         }
         if (offer.image) {
             const check = await this.deleteImageFile(offer.image);
-            if (check.message != "File deleted successfully") {
+            if (check.message != 'File deleted successfully') {
                 return { message: check.message, success: false };
             }
         }
         try {
             await this.offerRepository.delete(id);
-            return { message: `Offer with ID ${id} deleted successfully.`, success: true };
+            return {
+                message: `Offer with ID ${id} deleted successfully.`,
+                success: true,
+            };
         }
         catch (error) {
             return { message: 'Error removing offer', success: false };

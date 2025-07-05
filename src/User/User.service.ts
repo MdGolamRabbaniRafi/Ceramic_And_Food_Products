@@ -11,22 +11,28 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepo: Repository<UserEntity>,
-  ) { }
+  ) {}
   getHello(): string {
     return 'Hello User!';
   }
   async SearchByID(Id: number): Promise<UserEntity | null> {
-    let userEntity = await this.userRepo.findOne({ where: { Id } });
-    if (userEntity != null) {
-      const userImage = normalize(userEntity.Image).replace(/\\/g, '/');
-      // userEntity.Image = userImage.replace('/home/farseit1/public_html', 'https://farseit.com');
-            userEntity.Image = userImage.replace(process.env.Host_path, process.env.Host_url);
+    const userEntity = await this.userRepo.findOne({ where: { Id } });
 
-      return userEntity;
+    if (userEntity != null && typeof userEntity.Image === 'string') {
+      const normalizedPath = normalize(userEntity.Image).replace(/\\/g, '/');
+
+      // Remove domain (https://farseit.com) and convert to "https:/Upload/Auth/..."
+      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      userEntity.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
     }
-    return null;
+
+    return userEntity;
   }
-  async EditUserProfileByID(Id: number, updatedData: Partial<UserEntity>): Promise<UserEntity | null> {
+
+  async EditUserProfileByID(
+    Id: number,
+    updatedData: Partial<UserEntity>,
+  ): Promise<UserEntity | null> {
     const result = await this.userRepo.update(Id, {
       name: updatedData.name,
       phone: updatedData.phone,
@@ -40,102 +46,116 @@ export class UserService {
     return null;
   }
 
-async deleteImageFile(imagePath: string): Promise<{ message: string }> {
-  if (!imagePath) {
-    return { message: 'No image path provided' };
-  }
-
-  // Normalize incorrect slashes
-  if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
-    imagePath = imagePath.replace('https:/', 'https://');
-  }
-
-  // Extract filename from URL
-  const fileName = path.basename(imagePath);
-  console.log("basename:", fileName);
-
-  // Determine environment
-  const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
-
-  // Get upload path from .env
-  let uploadDir = process.env.Auth_Image_Destination || '';
-
-  // If in production and image path starts with Host_url, convert URL to local path
-  if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
-    uploadDir = process.env.Host_path
-      ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
-      : uploadDir;
-  }
-
-  // Construct local file path
-  const localImagePath = path.join(uploadDir, fileName);
-  console.log("Resolved path for deletion:", localImagePath);
-
-  // Check if file exists
-  try {
-    await fs.access(localImagePath);
-  } catch (err) {
-    console.error("File not found:", localImagePath);
-    return { message: 'File not found' };
-  }
-
-  // Attempt deletion
-  try {
-    await fs.unlink(localImagePath);
-    console.log("File deleted:", fileName);
-    return { message: 'File deleted successfully' };
-  } catch (err) {
-    console.error("Failed to delete:", localImagePath, err);
-    return { message: 'Failed to delete file' };
-  }
-}
-
-
-
-
-async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { message: string }> {
-  const userDetails = await this.SearchByID(Id);
-  const OldPath = userDetails.Image;
-
-  // Log the old path to check its format
-  console.log("Old Path from database:", OldPath);
-
-  // Attempt to delete the old image and capture the result message
-  const removeOldPath = await this.deleteImageFile(OldPath);
-
-  // If failed to delete old image
-  if (removeOldPath.message!='File deleted successfully') {
-    return removeOldPath;
-  }
-
-  // Try to update the profile picture path in the database
-  const result = await this.userRepo.update(Id, { Image: path });
-
-  if (result.affected > 0) {
-    const updatedUser = await this.userRepo.findOne({ where: { Id } });
-    if (updatedUser) {
-      return updatedUser;
-    } else {
-      return { message: "Profile picture updated, but failed to fetch updated user details." };
+  async deleteImageFile(imagePath: string): Promise<{ message: string }> {
+    if (!imagePath) {
+      return { message: 'No image path provided' };
     }
-  } else {
-    return { message: "Failed to update profile picture in database." };
-  }
-}
 
+    // Normalize incorrect slashes
+    if (imagePath.startsWith('https:/') && !imagePath.startsWith('https://')) {
+      imagePath = imagePath.replace('https:/', 'https://');
+    }
+
+    // Extract filename from URL
+    const fileName = path.basename(imagePath);
+    console.log('basename:', fileName);
+
+    // Determine environment
+    const isProduction =
+      process.env.NODE_ENV === 'production' || process.platform !== 'win32';
+
+    // Get upload path from .env
+    let uploadDir = process.env.Auth_Image_Destination || '';
+
+    // If in production and image path starts with Host_url, convert URL to local path
+    if (
+      isProduction &&
+      process.env.Host_url &&
+      imagePath.startsWith(process.env.Host_url)
+    ) {
+      uploadDir = process.env.Host_path
+        ? path.join(
+            process.env.Host_path,
+            uploadDir.replace(process.env.Host_path, ''),
+          )
+        : uploadDir;
+    }
+
+    // Construct local file path
+    const localImagePath = path.join(uploadDir, fileName);
+    console.log('Resolved path for deletion:', localImagePath);
+
+    // Check if file exists
+    try {
+      await fs.access(localImagePath);
+    } catch (err) {
+      console.error('File not found:', localImagePath);
+      return { message: 'File not found' };
+    }
+
+    // Attempt deletion
+    try {
+      await fs.unlink(localImagePath);
+      console.log('File deleted:', fileName);
+      return { message: 'File deleted successfully' };
+    } catch (err) {
+      console.error('Failed to delete:', localImagePath, err);
+      return { message: 'Failed to delete file' };
+    }
+  }
+
+  async ChangeProfilePicture(
+    Id: number,
+    path: string,
+  ): Promise<UserEntity | { message: string }> {
+    const userDetails = await this.SearchByID(Id);
+    const OldPath = userDetails.Image;
+
+    // Log the old path to check its format
+    console.log('Old Path from database:', OldPath);
+
+    // Attempt to delete the old image and capture the result message
+    const removeOldPath = await this.deleteImageFile(OldPath);
+
+    // If failed to delete old image
+    if (removeOldPath.message != 'File deleted successfully') {
+      return removeOldPath;
+    }
+
+    // Try to update the profile picture path in the database
+    const result = await this.userRepo.update(Id, { Image: path });
+
+    if (result.affected > 0) {
+      const updatedUser = await this.userRepo.findOne({ where: { Id } });
+      if (updatedUser) {
+        return updatedUser;
+      } else {
+        return {
+          message:
+            'Profile picture updated, but failed to fetch updated user details.',
+        };
+      }
+    } else {
+      return { message: 'Failed to update profile picture in database.' };
+    }
+  }
 
   // In UserService
-  async getAllUsers(): Promise<UserEntity[] | null> {
-    let userEntity = await this.userRepo.find();
-    userEntity.forEach(user => {
-      const userImage = normalize(user.Image).replace(/\\/g, '/');
-      // user.Image=userImage.replace('/home/farseit1/public_html', 'https://farseit.com');
+ async getAllUsers(): Promise<UserEntity[] | null> {
+  const userEntity = await this.userRepo.find();
 
-      user.Image = userImage.replace(process.env.Host_path, process.env.Host_url);
-    })
+  userEntity.forEach((user) => {
+    if (typeof user.Image === 'string') {
+      const normalizedPath = normalize(user.Image).replace(/\\/g, '/');
 
-    return userEntity;
-  }
+      // Remove full domain or local path, and format as "https:/Upload/Auth/..."
+      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+    }
+  });
+
+  return userEntity;
+}
 
 
   async findByEmail(email: string): Promise<UserEntity | null> {
@@ -145,13 +165,15 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
     if (user != null) {
       const userImage = normalize(user.Image).replace(/\\/g, '/');
       // user.Image = userImage.replace('/home/farseit1/public_html', 'https://farseit.com');
-            user.Image = userImage.replace(process.env.Host_path, process.env.Host_url);
+      user.Image = userImage.replace(
+        process.env.Host_path,
+        process.env.Host_url,
+      );
 
       // console.log("Useremail:"+user.email)
       return user;
     }
     return null;
-
   }
   async validate(email: string, password: string): Promise<UserEntity | null> {
     // console.log("email:"+email)
@@ -159,32 +181,39 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
     if (findUser == null) {
       return null;
     }
-    let HashPassword = await bcrypt.compare(password, findUser.password)
+    let HashPassword = await bcrypt.compare(password, findUser.password);
     // console.log("H:"+HashPassword)
     if (findUser != null && HashPassword) {
       return findUser;
     }
 
     return null;
-
   }
-  async ChangePassword(Password: { oldPassword: string, newPassword: string }, Id: number): Promise<any> {
-    const findUser = await this.SearchByID(Id)
-    let HashPassword = await bcrypt.compare(Password.oldPassword, findUser.password)
+  async ChangePassword(
+    Password: { oldPassword: string; newPassword: string },
+    Id: number,
+  ): Promise<any> {
+    const findUser = await this.SearchByID(Id);
+    let HashPassword = await bcrypt.compare(
+      Password.oldPassword,
+      findUser.password,
+    );
     if (!HashPassword) {
-      return { message: "Incorrect Old Password" }
+      return { message: 'Incorrect Old Password' };
     }
     if (findUser != null && HashPassword) {
       const hashedNewPassword = await bcrypt.hash(Password.newPassword, 10); // Salt rounds = 10
 
       // Update the user's password with the hashed new password
-      const result = await this.userRepo.update(Id, { password: hashedNewPassword });
+      const result = await this.userRepo.update(Id, {
+        password: hashedNewPassword,
+      });
 
       if (result.affected > 0) {
-        return { message: "Password updated successfully" };
+        return { message: 'Password updated successfully' };
       }
 
-      return { message: "Error updating password" };
+      return { message: 'Error updating password' };
     }
   }
   // async SignUp(userEntity: UserEntity): Promise<UserEntity | boolean> {
@@ -240,20 +269,20 @@ async ChangeProfilePicture(Id: number, path: string): Promise<UserEntity | { mes
     const user = await this.SearchByID(Id);
 
     if (user) {
-      try{      const imageDeletionResult = await this.deleteImageFile(user.Image);
-              const deleteResult = await this.userRepo.delete(Id);
-
-      if (deleteResult.affected > 0) {
-        return true;
-      }
-}
-catch{
+      try {
+        const imageDeletionResult = await this.deleteImageFile(user.Image);
         const deleteResult = await this.userRepo.delete(Id);
 
-      if (deleteResult.affected > 0) {
-        return true;
+        if (deleteResult.affected > 0) {
+          return true;
+        }
+      } catch {
+        const deleteResult = await this.userRepo.delete(Id);
+
+        if (deleteResult.affected > 0) {
+          return true;
+        }
       }
-}
 
       // If the image is successfully deleted, proceed to delete the user
       const deleteResult = await this.userRepo.delete(Id);
@@ -265,6 +294,4 @@ catch{
 
     return false;
   }
-
-
 }

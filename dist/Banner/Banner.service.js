@@ -28,11 +28,13 @@ let BannerService = class BannerService {
         return 'Hello Banner!';
     }
     async findById(id) {
-        let BannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
-        if (BannerEntity != null) {
-            return BannerEntity;
+        const bannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
+        if (bannerEntity != null && typeof bannerEntity.path === 'string') {
+            const normalizedPath = (0, path_1.normalize)(bannerEntity.path).replace(/\\/g, '/');
+            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            bannerEntity.path = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
-        return null;
+        return bannerEntity;
     }
     async addSingle(bannerData) {
         const banner = new Banner_entity_1.BannerEntity();
@@ -44,11 +46,13 @@ let BannerService = class BannerService {
     }
     async getAll() {
         const response = await this.BannerRepo.find();
-        const updatedResponse = response.map(item => {
-            const userImage = (0, path_1.normalize)(item.path).replace(/\\/g, '/');
+        const updatedResponse = response.map((item) => {
+            const normalizedPath = (0, path_1.normalize)(item.path).replace(/\\/g, '/');
+            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            const finalPath = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
             return {
                 ...item,
-                path: userImage
+                path: finalPath,
             };
         });
         return updatedResponse;
@@ -61,30 +65,32 @@ let BannerService = class BannerService {
             imagePath = imagePath.replace('https:/', 'https://');
         }
         const fileName = path.basename(imagePath);
-        console.log("basename:", fileName);
+        console.log('basename:', fileName);
         const isProduction = process.env.NODE_ENV === 'production' || process.platform !== 'win32';
         let uploadDir = process.env.Banner_Image_Destination || '';
-        if (isProduction && process.env.Host_url && imagePath.startsWith(process.env.Host_url)) {
+        if (isProduction &&
+            process.env.Host_url &&
+            imagePath.startsWith(process.env.Host_url)) {
             uploadDir = process.env.Host_path
                 ? path.join(process.env.Host_path, uploadDir.replace(process.env.Host_path, ''))
                 : uploadDir;
         }
         const localImagePath = path.join(uploadDir, fileName);
-        console.log("Resolved path for deletion:", localImagePath);
+        console.log('Resolved path for deletion:', localImagePath);
         try {
             await fs_1.promises.access(localImagePath);
         }
         catch (err) {
-            console.error("File not found:", localImagePath);
+            console.error('File not found:', localImagePath);
             return { message: 'File not found' };
         }
         try {
             await fs_1.promises.unlink(localImagePath);
-            console.log("File deleted:", fileName);
+            console.log('File deleted:', fileName);
             return { message: 'File deleted successfully' };
         }
         catch (err) {
-            console.error("Failed to delete:", localImagePath, err);
+            console.error('Failed to delete:', localImagePath, err);
             return { message: 'Failed to delete file' };
         }
     }

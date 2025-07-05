@@ -36,13 +36,13 @@ let AuthController = class AuthController {
         let finalUrl;
         const trimmedPath = imageUrl.replace(process.env.Host_path, '');
         if (isProduction) {
-            finalUrl = `https://${trimmedPath}`;
+            finalUrl = `${process.env.Host_url}${trimmedPath}`;
         }
         else {
             finalUrl = trimmedPath;
         }
         userEntity.Image = finalUrl;
-        console.log("imageUrl", imageUrl);
+        console.log('imageUrl', imageUrl);
         return await this.authService.SignUpOTPCheck(userEntity);
     }
     async checkOtp(email, otp) {
@@ -79,7 +79,7 @@ let AuthController = class AuthController {
         }
         catch (error) {
             console.error('Error during GoogleAuth:', error);
-            throw new common_1.InternalServerErrorException("Failed to login");
+            throw new common_1.InternalServerErrorException('Failed to login');
         }
     }
 };
@@ -117,12 +117,12 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
-            }
-        })
+            },
+        }),
     })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.UploadedFile)()),
@@ -174,12 +174,12 @@ __decorate([
                 cb(null, resolvedDest);
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
             },
-        })
+        }),
     })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.UploadedFile)()),

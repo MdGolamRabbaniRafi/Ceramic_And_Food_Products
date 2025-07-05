@@ -36,13 +36,13 @@ let BannerController = class BannerController {
         const isProduction = process.env.NODE_ENV === 'production';
         let finalUrl;
         if (isProduction) {
-            finalUrl = `https://${trimmedPath}`;
+            finalUrl = `${process.env.Host_url}${trimmedPath}`;
         }
         else {
             finalUrl = trimmedPath;
         }
         const Image = finalUrl;
-        console.log("imageUrl", imageUrl);
+        console.log('imageUrl', imageUrl);
         const bannerData = {
             fileName: file.filename,
             path: Image,
@@ -63,7 +63,7 @@ let BannerController = class BannerController {
         const isProduction = process.env.NODE_ENV === 'production';
         let finalUrl;
         if (isProduction) {
-            finalUrl = `https://${trimmedPath}`;
+            finalUrl = `${process.env.Host_url}${trimmedPath}`;
         }
         else {
             finalUrl = trimmedPath;
@@ -80,14 +80,23 @@ let BannerController = class BannerController {
         try {
             const result = await this.BannerService.deleteBanner(id);
             if (result) {
-                return res.status(200).json({ success: true, message: 'Banner deleted successfully' });
+                return res
+                    .status(200)
+                    .json({ success: true, message: 'Banner deleted successfully' });
             }
             else {
-                return res.status(404).json({ success: false, message: 'Banner not found or deletion failed' });
+                return res.status(404).json({
+                    success: false,
+                    message: 'Banner not found or deletion failed',
+                });
             }
         }
         catch (error) {
-            return res.status(500).json({ success: false, message: 'An error occurred during deletion', error: error.message });
+            return res.status(500).json({
+                success: false,
+                message: 'An error occurred during deletion',
+                error: error.message,
+            });
         }
     }
 };
@@ -120,7 +129,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
@@ -160,7 +169,7 @@ __decorate([
                 }
             },
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const extension = (0, path_1.extname)(file.originalname);
                 const filename = `${uniqueSuffix}${extension}`;
                 cb(null, filename);
