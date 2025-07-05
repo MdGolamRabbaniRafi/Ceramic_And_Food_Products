@@ -66,6 +66,15 @@ let UserController = class UserController {
             return { message: 'User not found or deletion failed' };
         }
     }
+    async forceFullyDelete(Id) {
+        const deletionResult = await this.userService.forceFullyDelete(Id);
+        if (deletionResult) {
+            return { message: 'User and profile image deleted successfully' };
+        }
+        else {
+            return { message: 'User not found or deletion failed' };
+        }
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -150,6 +159,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteUser", null);
+__decorate([
+    (0, common_1.Delete)('/forceFullyDelete/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "forceFullyDelete", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('User'),
     __metadata("design:paramtypes", [User_service_1.UserService])

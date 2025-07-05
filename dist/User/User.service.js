@@ -200,6 +200,28 @@ let UserService = class UserService {
         }
         return false;
     }
+    async forceFullyDelete(Id) {
+        const user = await this.SearchByID(Id);
+        if (user) {
+            try {
+                const deleteResult = await this.userRepo.delete(Id);
+                if (deleteResult.affected > 0) {
+                    return true;
+                }
+            }
+            catch {
+                const deleteResult = await this.userRepo.delete(Id);
+                if (deleteResult.affected > 0) {
+                    return true;
+                }
+            }
+            const deleteResult = await this.userRepo.delete(Id);
+            if (deleteResult.affected > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([

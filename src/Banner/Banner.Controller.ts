@@ -183,4 +183,33 @@ export class BannerController {
       });
     }
   }
+
+
+
+   @Delete('/forcefullyDelete/:id')
+  async forcefullyDelete(
+    @Param('id') id: number,
+    @Res() res: Response,
+  ): Promise<any> {
+    try {
+      const result = await this.BannerService.forcefullyDelete(id);
+
+      if (result) {
+        return res
+          .status(200)
+          .json({ success: true, message: 'Banner deleted successfully' });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Banner not found or deletion failed',
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred during deletion',
+        error: error.message,
+      });
+    }
+  }
 }

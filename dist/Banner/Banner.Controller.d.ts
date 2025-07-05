@@ -14,4 +14,5 @@ export declare class BannerController {
         banner?: BannerEntity;
     }>;
     deleteBanner(id: number, res: Response): Promise<any>;
+    forcefullyDelete(id: number, res: Response): Promise<any>;
 }

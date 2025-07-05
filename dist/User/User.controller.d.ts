@@ -21,4 +21,7 @@ export declare class UserController {
     deleteUser(Id: number): Promise<{
         message: string;
     }>;
+    forceFullyDelete(Id: number): Promise<{
+        message: string;
+    }>;
 }

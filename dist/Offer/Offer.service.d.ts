@@ -18,4 +18,8 @@ export declare class OfferService {
         message: string;
         success: boolean;
     }>;
+    forceullyDelete(id: number): Promise<{
+        message: string;
+        success: boolean;
+    }>;
 }

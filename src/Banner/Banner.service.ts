@@ -221,6 +221,20 @@ export class BannerService {
     const deleteResult = await this.BannerRepo.delete(id);
     return deleteResult.affected > 0;
   }
+
+  async forcefullyDelete(id: number): Promise<boolean> {
+    const banner = await this.findById(id);
+    if (!banner) {
+      throw new Error('Banner not found');
+    }
+
+    // Delete the associated image file
+
+    // Delete the banner from the database
+    const deleteResult = await this.BannerRepo.delete(id);
+    return deleteResult.affected > 0;
+  }
+
   async countBanners(): Promise<number> {
     return await this.BannerRepo.count();
   }

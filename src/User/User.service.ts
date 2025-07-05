@@ -141,22 +141,21 @@ export class UserService {
   }
 
   // In UserService
- async getAllUsers(): Promise<UserEntity[] | null> {
-  const userEntity = await this.userRepo.find();
+  async getAllUsers(): Promise<UserEntity[] | null> {
+    const userEntity = await this.userRepo.find();
 
-  userEntity.forEach((user) => {
-    if (typeof user.Image === 'string') {
-      const normalizedPath = normalize(user.Image).replace(/\\/g, '/');
+    userEntity.forEach((user) => {
+      if (typeof user.Image === 'string') {
+        const normalizedPath = normalize(user.Image).replace(/\\/g, '/');
 
-      // Remove full domain or local path, and format as "https:/Upload/Auth/..."
-      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
-      user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
-    }
-  });
+        // Remove full domain or local path, and format as "https:/Upload/Auth/..."
+        const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+        user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
+      }
+    });
 
-  return userEntity;
-}
-
+    return userEntity;
+  }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     // console.log("email:"+email)
@@ -271,6 +270,36 @@ export class UserService {
     if (user) {
       try {
         const imageDeletionResult = await this.deleteImageFile(user.Image);
+        const deleteResult = await this.userRepo.delete(Id);
+
+        if (deleteResult.affected > 0) {
+          return true;
+        }
+      } catch {
+        const deleteResult = await this.userRepo.delete(Id);
+
+        if (deleteResult.affected > 0) {
+          return true;
+        }
+      }
+
+      // If the image is successfully deleted, proceed to delete the user
+      const deleteResult = await this.userRepo.delete(Id);
+
+      if (deleteResult.affected > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async forceFullyDelete(Id: number): Promise<boolean> {
+    const user = await this.SearchByID(Id);
+
+    if (user) {
+      try {
+        // const imageDeletionResult = await this.deleteImageFile(user.Image);
         const deleteResult = await this.userRepo.delete(Id);
 
         if (deleteResult.affected > 0) {

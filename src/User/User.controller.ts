@@ -115,11 +115,25 @@ export class UserController {
   async Search(): Promise<UserEntity[] | null> {
     return await this.userService.getAllUsers();
   }
+
   @Delete('/delete/:id')
   async deleteUser(
     @Param('id', ParseIntPipe) Id: number,
   ): Promise<{ message: string }> {
     const deletionResult = await this.userService.deleteUser(Id);
+    if (deletionResult) {
+      return { message: 'User and profile image deleted successfully' };
+    } else {
+      return { message: 'User not found or deletion failed' };
+    }
+  }
+
+  
+  @Delete('/forceFullyDelete/:id')
+  async forceFullyDelete(
+    @Param('id', ParseIntPipe) Id: number,
+  ): Promise<{ message: string }> {
+    const deletionResult = await this.userService.forceFullyDelete(Id);
     if (deletionResult) {
       return { message: 'User and profile image deleted successfully' };
     } else {

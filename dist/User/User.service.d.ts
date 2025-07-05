@@ -21,4 +21,5 @@ export declare class UserService {
     }, Id: number): Promise<any>;
     SignUp(userEntity: UserEntity): Promise<UserEntity | boolean>;
     deleteUser(Id: number): Promise<boolean>;
+    forceFullyDelete(Id: number): Promise<boolean>;
 }

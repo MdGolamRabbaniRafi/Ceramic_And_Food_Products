@@ -123,6 +123,22 @@ let OfferService = class OfferService {
             return { message: 'Error removing offer', success: false };
         }
     }
+    async forceullyDelete(id) {
+        const offer = await this.getOfferById(id);
+        if ('message' in offer) {
+            return { message: offer.message, success: false };
+        }
+        try {
+            await this.offerRepository.delete(id);
+            return {
+                message: `Offer with ID ${id} deleted successfully.`,
+                success: true,
+            };
+        }
+        catch (error) {
+            return { message: 'Error removing offer', success: false };
+        }
+    }
 };
 exports.OfferService = OfferService;
 exports.OfferService = OfferService = __decorate([

@@ -23,5 +23,6 @@ export declare class BannerService {
         banner?: BannerEntity;
     }>;
     deleteBanner(id: number): Promise<boolean>;
+    forcefullyDelete(id: number): Promise<boolean>;
     countBanners(): Promise<number>;
 }

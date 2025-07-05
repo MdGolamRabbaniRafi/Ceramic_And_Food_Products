@@ -128,6 +128,14 @@ let BannerService = class BannerService {
         const deleteResult = await this.BannerRepo.delete(id);
         return deleteResult.affected > 0;
     }
+    async forcefullyDelete(id) {
+        const banner = await this.findById(id);
+        if (!banner) {
+            throw new Error('Banner not found');
+        }
+        const deleteResult = await this.BannerRepo.delete(id);
+        return deleteResult.affected > 0;
+    }
     async countBanners() {
         return await this.BannerRepo.count();
     }

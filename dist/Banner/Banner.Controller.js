@@ -99,6 +99,29 @@ let BannerController = class BannerController {
             });
         }
     }
+    async forcefullyDelete(id, res) {
+        try {
+            const result = await this.BannerService.forcefullyDelete(id);
+            if (result) {
+                return res
+                    .status(200)
+                    .json({ success: true, message: 'Banner deleted successfully' });
+            }
+            else {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Banner not found or deletion failed',
+                });
+            }
+        }
+        catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'An error occurred during deletion',
+                error: error.message,
+            });
+        }
+    }
 };
 exports.BannerController = BannerController;
 __decorate([
@@ -191,6 +214,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], BannerController.prototype, "deleteBanner", null);
+__decorate([
+    (0, common_1.Delete)('/forcefullyDelete/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], BannerController.prototype, "forcefullyDelete", null);
 exports.BannerController = BannerController = __decorate([
     (0, common_1.Controller)('Banner'),
     __metadata("design:paramtypes", [Banner_service_1.BannerService])
