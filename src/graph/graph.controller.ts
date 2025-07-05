@@ -19,4 +19,28 @@ export class GraphController {
     const end = new Date(endDate);
     return this.graphService.getSalesByDateRange(start, end);
   }
+
+  @Get('weakly/now')
+  async getWeeklySales() {
+    return this.graphService.getCurrentWeekSales();
+  }
+
+  @Get('monthly/now')
+  async getCurrentMonthSales() {
+    return this.graphService.getMonthlySalesOnly();
+  }
+
+  @Get('sales/last-6-months')
+  async getLastSixMonthsSales() {
+    return this.graphService.getLastSixMonthsSales();
+  }
+
+  @Get('sales/last-12-months')
+  async getLastTwelveMonthsSales() {
+    return this.graphService.getLastTwelveMonthsSales();
+  }
+  @Get('/category-with-product-count')
+  async getCategoriesWithProductCount() {
+    return await this.graphService.getAllCategoriesWithProductCount();
+  }
 }

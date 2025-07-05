@@ -40,6 +40,9 @@ let OrderController = class OrderController {
     async deleteOrder(id) {
         return await this.orderService.deleteOrder(id);
     }
+    async getOrdersByUserId(userId) {
+        return await this.orderService.getOrdersByUserId(userId);
+    }
 };
 exports.OrderController = OrderController;
 __decorate([
@@ -91,6 +94,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "deleteOrder", null);
+__decorate([
+    (0, common_1.Get)('/user/:userId'),
+    __param(0, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "getOrdersByUserId", null);
 exports.OrderController = OrderController = __decorate([
     (0, common_1.Controller)('Order'),
     __metadata("design:paramtypes", [Order_service_1.OrderService])

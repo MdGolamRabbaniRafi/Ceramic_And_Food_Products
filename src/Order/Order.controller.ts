@@ -51,4 +51,11 @@ export class OrderController {
   async deleteOrder(@Param('id', ParseIntPipe) id: number): Promise<string> {
     return await this.orderService.deleteOrder(id);
   }
+
+  @Get('/user/:userId')
+  async getOrdersByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<OrderEntity[]> {
+    return await this.orderService.getOrdersByUserId(userId);
+  }
 }

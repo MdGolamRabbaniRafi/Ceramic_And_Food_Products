@@ -27,6 +27,21 @@ let GraphController = class GraphController {
         const end = new Date(endDate);
         return this.graphService.getSalesByDateRange(start, end);
     }
+    async getWeeklySales() {
+        return this.graphService.getCurrentWeekSales();
+    }
+    async getCurrentMonthSales() {
+        return this.graphService.getMonthlySalesOnly();
+    }
+    async getLastSixMonthsSales() {
+        return this.graphService.getLastSixMonthsSales();
+    }
+    async getLastTwelveMonthsSales() {
+        return this.graphService.getLastTwelveMonthsSales();
+    }
+    async getCategoriesWithProductCount() {
+        return await this.graphService.getAllCategoriesWithProductCount();
+    }
 };
 exports.GraphController = GraphController;
 __decorate([
@@ -43,6 +58,36 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], GraphController.prototype, "getSalesByDateRange", null);
+__decorate([
+    (0, common_1.Get)('weakly/now'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GraphController.prototype, "getWeeklySales", null);
+__decorate([
+    (0, common_1.Get)('monthly/now'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GraphController.prototype, "getCurrentMonthSales", null);
+__decorate([
+    (0, common_1.Get)('sales/last-6-months'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GraphController.prototype, "getLastSixMonthsSales", null);
+__decorate([
+    (0, common_1.Get)('sales/last-12-months'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GraphController.prototype, "getLastTwelveMonthsSales", null);
+__decorate([
+    (0, common_1.Get)('/category-with-product-count'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], GraphController.prototype, "getCategoriesWithProductCount", null);
 exports.GraphController = GraphController = __decorate([
     (0, common_1.Controller)('Graph'),
     __metadata("design:paramtypes", [graph_service_1.GraphService])

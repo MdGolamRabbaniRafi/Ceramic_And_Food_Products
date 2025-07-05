@@ -397,6 +397,12 @@ let OrderService = class OrderService {
             throw new Error('Failed to delete order.');
         }
     }
+    async getOrdersByUserId(userId) {
+        return await this.orderRepo.find({
+            where: { user: { Id: userId } },
+            relations: ['orderProductMappers', 'products'],
+        });
+    }
 };
 exports.OrderService = OrderService;
 exports.OrderService = OrderService = __decorate([

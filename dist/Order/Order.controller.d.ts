@@ -12,4 +12,5 @@ export declare class OrderController {
         message: string;
     }>;
     deleteOrder(id: number): Promise<string>;
+    getOrdersByUserId(userId: number): Promise<OrderEntity[]>;
 }

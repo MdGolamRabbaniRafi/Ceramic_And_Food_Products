@@ -4,4 +4,9 @@ export declare class GraphController {
     constructor(graphService: GraphService);
     getMonthlySales(): Promise<any>;
     getSalesByDateRange(startDate: string, endDate: string): Promise<any>;
+    getWeeklySales(): Promise<any>;
+    getCurrentMonthSales(): Promise<any>;
+    getLastSixMonthsSales(): Promise<any[]>;
+    getLastTwelveMonthsSales(): Promise<any[]>;
+    getCategoriesWithProductCount(): Promise<any[]>;
 }

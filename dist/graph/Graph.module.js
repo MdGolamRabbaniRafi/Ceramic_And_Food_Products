@@ -12,12 +12,13 @@ const typeorm_1 = require("@nestjs/typeorm");
 const graph_controller_1 = require("./graph.controller");
 const Order_entity_1 = require("../Order/Order.entity");
 const graph_service_1 = require("./graph.service");
+const Category_entity_1 = require("../Category/Category.entity");
 let GraphModule = class GraphModule {
 };
 exports.GraphModule = GraphModule;
 exports.GraphModule = GraphModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([Order_entity_1.OrderEntity])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([Order_entity_1.OrderEntity, Category_entity_1.CategoryEntity])],
         providers: [graph_service_1.GraphService],
         controllers: [graph_controller_1.GraphController],
     })

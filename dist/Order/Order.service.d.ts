@@ -16,4 +16,5 @@ export declare class OrderService {
     getOrderById(id: number): Promise<any>;
     addOrder(orderData: any): Promise<string>;
     deleteOrder(orderId: number): Promise<string>;
+    getOrdersByUserId(userId: number): Promise<OrderEntity[]>;
 }

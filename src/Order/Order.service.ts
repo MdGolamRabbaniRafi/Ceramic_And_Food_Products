@@ -30,8 +30,8 @@ export class OrderService {
     if (!order) {
       return { message: 'Order not found' };
     }
-    order.status=status;
-    await this.orderRepo.update(id,order);
+    order.status = status;
+    await this.orderRepo.update(id, order);
     return order;
   }
 
@@ -511,6 +511,13 @@ export class OrderService {
       console.error('Error deleting order:', error.message);
       throw new Error('Failed to delete order.');
     }
+  }
+
+  async getOrdersByUserId(userId: number): Promise<OrderEntity[]> {
+    return await this.orderRepo.find({
+      where: { user: { Id: userId } }, // assuming OrderEntity has a relation: user: UserEntity
+      relations: ['orderProductMappers', 'products'], // <-- Use the exact property name here
+    });
   }
 }
 interface JsonAttribute {

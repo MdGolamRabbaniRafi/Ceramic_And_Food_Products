@@ -52,5 +52,5 @@ export class OrderEntity {
   cupon: CuponEntity;
 
   @OneToOne(() => PaymentEntity, (payment) => payment.order)
-payment: PaymentEntity;
+  payment: PaymentEntity;
 }

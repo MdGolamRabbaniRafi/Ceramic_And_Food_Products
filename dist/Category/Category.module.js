@@ -17,13 +17,9 @@ let CategoryModule = class CategoryModule {
 exports.CategoryModule = CategoryModule;
 exports.CategoryModule = CategoryModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            typeorm_1.TypeOrmModule.forFeature([
-                Category_entity_1.CategoryEntity,
-            ]),
-        ],
+        imports: [typeorm_1.TypeOrmModule.forFeature([Category_entity_1.CategoryEntity])],
         controllers: [Category_controller_1.CategoryController],
-        providers: [Category_service_1.CategoryService],
+        providers: [Category_service_1.CategoryService, typeorm_1.TypeOrmModule],
     })
 ], CategoryModule);
 //# sourceMappingURL=Category.module.js.map
