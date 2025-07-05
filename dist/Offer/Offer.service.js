@@ -19,7 +19,6 @@ const typeorm_2 = require("typeorm");
 const Offer_entity_1 = require("./Offer.entity");
 const fs_1 = require("fs");
 const path = require("path");
-const path_1 = require("path");
 let OfferService = class OfferService {
     constructor(offerRepository) {
         this.offerRepository = offerRepository;
@@ -67,8 +66,8 @@ let OfferService = class OfferService {
         const offers = await this.offerRepository.find();
         const updatedOffers = offers.map((offer) => {
             if (typeof offer.image === 'string') {
-                const normalizedPath = (0, path_1.normalize)(offer.image).replace(/\\/g, '/');
-                const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+                const trimmed = offer.image.trim();
+                const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
                 offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
             }
             return offer;
@@ -81,8 +80,8 @@ let OfferService = class OfferService {
             return { message: 'Not found' };
         }
         if (typeof offer.image === 'string') {
-            const normalizedPath = (0, path_1.normalize)(offer.image).replace(/\\/g, '/');
-            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            const trimmed = offer.image.trim();
+            const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
             offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
         return offer;

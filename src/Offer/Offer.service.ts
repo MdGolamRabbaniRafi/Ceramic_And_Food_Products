@@ -85,8 +85,8 @@ export class OfferService {
 
     const updatedOffers = offers.map((offer) => {
       if (typeof offer.image === 'string') {
-        const normalizedPath = normalize(offer.image).replace(/\\/g, '/');
-        const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+        const trimmed = offer.image.trim();
+        const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
         offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
       }
 
@@ -103,10 +103,10 @@ export class OfferService {
       return { message: 'Not found' };
     }
 
-    // Clean up path if it's present and a string
+    // Clean up image path if it's a string
     if (typeof offer.image === 'string') {
-      const normalizedPath = normalize(offer.image).replace(/\\/g, '/');
-      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      const trimmed = offer.image.trim();
+      const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
       offer.image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
     }
 
