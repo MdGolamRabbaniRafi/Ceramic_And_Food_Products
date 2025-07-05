@@ -170,6 +170,7 @@ export class UserService {
     }
     return null;
   }
+  
   async validate(email: string, password: string): Promise<UserEntity | null> {
     // console.log("email:"+email)
     let findUser = await this.findByEmail(email);
@@ -184,6 +185,7 @@ export class UserService {
 
     return null;
   }
+
   async ChangePassword(
     Password: { oldPassword: string; newPassword: string },
     Id: number,

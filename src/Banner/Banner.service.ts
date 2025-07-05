@@ -21,10 +21,8 @@ export class BannerService {
     const bannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
 
     if (bannerEntity != null && typeof bannerEntity.path === 'string') {
-      const normalizedPath = normalize(bannerEntity.path).replace(/\\/g, '/');
-
-      // Remove domain or full path and convert to "https:/Upload/Banner/..."
-      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      const trimmed = bannerEntity.path.trim();
+      const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
       bannerEntity.path = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
     }
 
@@ -94,15 +92,12 @@ export class BannerService {
   //     return false;
   //   }
   // }
-
   async getAll(): Promise<any[]> {
     const response = await this.BannerRepo.find();
 
     const updatedResponse = response.map((item) => {
-      const normalizedPath = normalize(item.path).replace(/\\/g, '/');
-
-      // Remove domain or base path and format as "https:/Upload/Banner/..."
-      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      const trimmed = item.path.trim();
+      const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
       const finalPath = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
 
       return {

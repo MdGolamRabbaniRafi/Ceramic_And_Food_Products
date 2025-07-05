@@ -69,7 +69,7 @@ let UserController = class UserController {
     async forceFullyDelete(Id) {
         const deletionResult = await this.userService.forceFullyDelete(Id);
         if (deletionResult) {
-            return { message: 'User and profile image deleted successfully' };
+            return { message: 'User and profile deleted successfully' };
         }
         else {
             return { message: 'User not found or deletion failed' };

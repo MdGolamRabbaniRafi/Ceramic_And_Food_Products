@@ -19,7 +19,6 @@ const typeorm_2 = require("typeorm");
 const Banner_entity_1 = require("./Banner.entity");
 const fs_1 = require("fs");
 const path = require("path");
-const path_1 = require("path");
 let BannerService = class BannerService {
     constructor(BannerRepo) {
         this.BannerRepo = BannerRepo;
@@ -30,8 +29,8 @@ let BannerService = class BannerService {
     async findById(id) {
         const bannerEntity = await this.BannerRepo.findOne({ where: { Id: id } });
         if (bannerEntity != null && typeof bannerEntity.path === 'string') {
-            const normalizedPath = (0, path_1.normalize)(bannerEntity.path).replace(/\\/g, '/');
-            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            const trimmed = bannerEntity.path.trim();
+            const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
             bannerEntity.path = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
         return bannerEntity;
@@ -47,8 +46,8 @@ let BannerService = class BannerService {
     async getAll() {
         const response = await this.BannerRepo.find();
         const updatedResponse = response.map((item) => {
-            const normalizedPath = (0, path_1.normalize)(item.path).replace(/\\/g, '/');
-            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            const trimmed = item.path.trim();
+            const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
             const finalPath = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
             return {
                 ...item,
