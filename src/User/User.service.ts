@@ -19,10 +19,8 @@ export class UserService {
     const userEntity = await this.userRepo.findOne({ where: { Id } });
 
     if (userEntity != null && typeof userEntity.Image === 'string') {
-      const normalizedPath = normalize(userEntity.Image).replace(/\\/g, '/');
-
-      // Remove domain (https://farseit.com) and convert to "https:/Upload/Auth/..."
-      const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+      const trimmed = userEntity.Image.trim();
+      const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
       userEntity.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
     }
 
@@ -146,10 +144,8 @@ export class UserService {
 
     userEntity.forEach((user) => {
       if (typeof user.Image === 'string') {
-        const normalizedPath = normalize(user.Image).replace(/\\/g, '/');
-
-        // Remove full domain or local path, and format as "https:/Upload/Auth/..."
-        const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+        const trimmed = user.Image.trim();
+        const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
         user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
       }
     });

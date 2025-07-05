@@ -31,8 +31,8 @@ let UserService = class UserService {
     async SearchByID(Id) {
         const userEntity = await this.userRepo.findOne({ where: { Id } });
         if (userEntity != null && typeof userEntity.Image === 'string') {
-            const normalizedPath = (0, path_1.normalize)(userEntity.Image).replace(/\\/g, '/');
-            const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+            const trimmed = userEntity.Image.trim();
+            const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
             userEntity.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
         }
         return userEntity;
@@ -113,8 +113,8 @@ let UserService = class UserService {
         const userEntity = await this.userRepo.find();
         userEntity.forEach((user) => {
             if (typeof user.Image === 'string') {
-                const normalizedPath = (0, path_1.normalize)(user.Image).replace(/\\/g, '/');
-                const relativePath = normalizedPath.replace(/^https?:\/\/[^/]+/, '');
+                const trimmed = user.Image.trim();
+                const relativePath = trimmed.replace(/^https?:\/\/[^/]+/, '');
                 user.Image = `https:/${relativePath.startsWith('/') ? relativePath.slice(1) : relativePath}`;
             }
         });
