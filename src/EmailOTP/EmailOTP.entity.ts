@@ -14,14 +14,14 @@ export class OTPEntity {
   Id: number;
 
   @Column({ name: 'otp', type: 'varchar' })
-  OTP: string;
+  otp: string;
 
   @Column({ name: 'Expire_Time', type: 'timestamp' })
   @Index() // Indexing for better query performance
   Expire_Time: Date;
 
   @Column({ name: 'Email', type: 'varchar' })
-  EMAIL: string;
+  email: string;
   @Column({ name: 'user', type: 'json', nullable: true })
   User: UserEntity;
   //   @ManyToOne(() => UserEntity, user => user.token, { onDelete: 'CASCADE' })

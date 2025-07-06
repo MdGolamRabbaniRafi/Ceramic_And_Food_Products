@@ -79,8 +79,8 @@ export class EmailOTPService {
         // await this.redisService.storeOtp(to, otp, 180);
         const expireTime = new Date(Date.now() + 3 * 60 * 1000);
         const newOtp = this.otpRepo.create({
-          EMAIL: to, // Ensure the property matches your entity's column
-          OTP: otp, // Ensure this matches your entity's column
+          email: to, // Ensure the property matches your entity's column
+          otp: otp, // Ensure this matches your entity's column
           Expire_Time: expireTime,
           User: user.length > 0 ? user[0] : null,
         });
@@ -95,19 +95,21 @@ export class EmailOTPService {
       return 'No user found with the email: ' + to;
     }
   }
+
+
   async verifyOtp(
     email: string,
     otp: string,
   ): Promise<{ message: string; user?: UserEntity }> {
-    const storedOtp = await this.otpRepo.findOne({ where: { EMAIL: email } });
-    console.log('stored:' + storedOtp.OTP);
+    const storedOtp = await this.otpRepo.findOne({ where: { email : email } });
+    console.log('stored:' + storedOtp.otp);
     console.log('otp:' + otp);
 
     if (!storedOtp) {
       return { message: 'Invalid OTP or OTP expired' };
     }
 
-    if (storedOtp.OTP !== otp) {
+    if (storedOtp.otp !== otp) {
       //  return { message: 'Invalid OTP. otp:'+otp+" stored otp: "+storedOtp.OTP };
       return { message: 'Invalid OTP.' };
     }
@@ -119,7 +121,7 @@ export class EmailOTPService {
     const user = storedOtp.User;
 
     // Delete OTP after successful verification
-    await this.otpRepo.delete({ EMAIL: email });
+    await this.otpRepo.delete({ email: email });
 
     return {
       message: 'OTP verified successfully',
@@ -185,8 +187,8 @@ export class EmailOTPService {
       // const redisResponse = await this.redisService.storeUserDetails(to, userEntity, otp, 300);
       const expireTime = new Date(Date.now() + 3 * 60 * 1000);
       const newOtp = this.otpRepo.create({
-        EMAIL: to, // Ensure the property matches your entity's column
-        OTP: otp, // Ensure this matches your entity's column
+        email: to, // Ensure the property matches your entity's column
+        otp: otp, // Ensure this matches your entity's column
         Expire_Time: expireTime,
         User: userEntity,
       });

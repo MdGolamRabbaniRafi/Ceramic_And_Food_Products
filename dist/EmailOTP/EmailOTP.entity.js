@@ -22,7 +22,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ name: 'otp', type: 'varchar' }),
     __metadata("design:type", String)
-], OTPEntity.prototype, "OTP", void 0);
+], OTPEntity.prototype, "otp", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'Expire_Time', type: 'timestamp' }),
     (0, typeorm_1.Index)(),
@@ -31,7 +31,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ name: 'Email', type: 'varchar' }),
     __metadata("design:type", String)
-], OTPEntity.prototype, "EMAIL", void 0);
+], OTPEntity.prototype, "email", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'user', type: 'json', nullable: true }),
     __metadata("design:type", User_entity_1.UserEntity)

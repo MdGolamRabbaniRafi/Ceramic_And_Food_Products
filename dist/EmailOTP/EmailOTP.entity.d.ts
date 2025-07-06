@@ -1,8 +1,8 @@
 import { UserEntity } from 'src/User/User.entity';
 export declare class OTPEntity {
     Id: number;
-    OTP: string;
+    otp: string;
     Expire_Time: Date;
-    EMAIL: string;
+    email: string;
     User: UserEntity;
 }

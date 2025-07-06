@@ -77,8 +77,8 @@ let EmailOTPService = class EmailOTPService {
                 });
                 const expireTime = new Date(Date.now() + 3 * 60 * 1000);
                 const newOtp = this.otpRepo.create({
-                    EMAIL: to,
-                    OTP: otp,
+                    email: to,
+                    otp: otp,
                     Expire_Time: expireTime,
                     User: user.length > 0 ? user[0] : null,
                 });
@@ -96,20 +96,20 @@ let EmailOTPService = class EmailOTPService {
         }
     }
     async verifyOtp(email, otp) {
-        const storedOtp = await this.otpRepo.findOne({ where: { EMAIL: email } });
-        console.log('stored:' + storedOtp.OTP);
+        const storedOtp = await this.otpRepo.findOne({ where: { email: email } });
+        console.log('stored:' + storedOtp.otp);
         console.log('otp:' + otp);
         if (!storedOtp) {
             return { message: 'Invalid OTP or OTP expired' };
         }
-        if (storedOtp.OTP !== otp) {
+        if (storedOtp.otp !== otp) {
             return { message: 'Invalid OTP.' };
         }
         if (new Date(storedOtp.Expire_Time) < new Date()) {
             return { message: 'OTP expired' };
         }
         const user = storedOtp.User;
-        await this.otpRepo.delete({ EMAIL: email });
+        await this.otpRepo.delete({ email: email });
         return {
             message: 'OTP verified successfully',
             user: user,
@@ -168,8 +168,8 @@ let EmailOTPService = class EmailOTPService {
             console.log('check2');
             const expireTime = new Date(Date.now() + 3 * 60 * 1000);
             const newOtp = this.otpRepo.create({
-                EMAIL: to,
-                OTP: otp,
+                email: to,
+                otp: otp,
                 Expire_Time: expireTime,
                 User: userEntity,
             });
