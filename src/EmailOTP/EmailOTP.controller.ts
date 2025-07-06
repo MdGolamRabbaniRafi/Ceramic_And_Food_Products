@@ -12,10 +12,14 @@ export class EmailOTPController {
   }
 
   @Post('/check')
-  async checkOtp(@Body('email') email: string, @Body('otp') otp: string, @Res() res: Response): Promise<any> {
+  async checkOtp(
+    @Body('email') email: string,
+    @Body('otp') otp: string,
+    @Res() res: Response,
+  ): Promise<any> {
     const result = await this.otpService.verifyOtp(email, otp);
     if (result.message === 'OTP verified successfully') {
-      res.clearCookie(email); // Clear the cookie if OTP is verified
+      // res.clearCookie(email); // Clear the cookie if OTP is verified
       return res.json({ message: result });
     }
     return res.status(400).json({ message: result });

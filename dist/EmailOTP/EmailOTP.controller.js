@@ -25,7 +25,6 @@ let EmailOTPController = class EmailOTPController {
     async checkOtp(email, otp, res) {
         const result = await this.otpService.verifyOtp(email, otp);
         if (result.message === 'OTP verified successfully') {
-            res.clearCookie(email);
             return res.json({ message: result });
         }
         return res.status(400).json({ message: result });
