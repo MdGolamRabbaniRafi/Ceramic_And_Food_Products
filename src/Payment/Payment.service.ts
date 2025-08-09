@@ -37,8 +37,11 @@ export class PaymentService {
     const userEmail = paymentEntity.user?.email;
     const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
 
-    if (!userEmail || !adminEmail) {
-      throw new Error('User or Admin email is missing');
+    if (!userEmail) {
+      throw new Error('User email is missing');
+    }
+    if (!adminEmail) {
+      throw new Error('Admin email is missing');
     }
     const adminNumber = process.env.Admin_Number;
     const message = `
@@ -68,7 +71,7 @@ export class PaymentService {
               <p>Hello,</p>
               <p>Your Payment Status is:</p>
               <p class="Payment Status">${paymentEntity.status}</p>
-              <p>You need to wait 6 hour until seller approved your payment. you can reach out the admin by contacting to  ${adminNumber}.</p>
+              <p>You need to wait 6 hour until seller approved your payment. you can reach out the admin by contacting to  ${adminNumber}or ${adminEmail}.</p>
             </div>
             <div class="footer">
               <p>If you did not request this email, please <a href="#">ignore it</a>.</p>
@@ -176,6 +179,7 @@ export class PaymentService {
   async changeStatus(id: number, status: string): Promise<boolean> {
     try {
       const result = await this.paymentRepo.update(id, { status });
+      const adminEmail = this.configService.get<string>('EMAIL_FROM');
       const paymentData = await this.paymentRepo.findOne({
         where: { Id: id },
         relations: ['user'],
@@ -206,7 +210,7 @@ export class PaymentService {
             </div>
             <div class="content">
               <p>Hello,</p>
-              <p>The Payment Status is changed to:${status} for your order. you can reach out the admin by contacting to  ${adminNumber}.</p>
+              <p>The Payment Status is changed to:${status} for your order. you can reach out the admin by contacting to  ${adminNumber} or ${adminEmail}.</p>
             </div>
             <div class="footer">
               <p>If you did not request this email, please <a href="#">ignore it</a>.</p>
@@ -218,7 +222,7 @@ export class PaymentService {
       `;
       const results = await Promise.allSettled([
         this.mailerService.sendMail({
-          from: this.configService.get<string>('EMAIL_FROM'),
+          from: adminEmail,
           to: paymentData.user.email,
           subject: 'Payment verification mail',
           html: message,
