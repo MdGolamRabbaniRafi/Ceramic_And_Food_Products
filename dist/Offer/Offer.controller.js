@@ -19,6 +19,7 @@ const fs = require("fs");
 const multer_1 = require("multer");
 const path_1 = require("path");
 const Offer_service_1 = require("./Offer.service");
+const swagger_1 = require("@nestjs/swagger");
 let OfferController = class OfferController {
     constructor(offerService) {
         this.offerService = offerService;
@@ -171,6 +172,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OfferController.prototype, "deleteOffer", null);
 exports.OfferController = OfferController = __decorate([
+    (0, swagger_1.ApiTags)('offers'),
     (0, common_1.Controller)('offers'),
     __metadata("design:paramtypes", [Offer_service_1.OfferService])
 ], OfferController);

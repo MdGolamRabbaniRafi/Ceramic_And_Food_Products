@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { GraphService } from './graph.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Graph')
 @Controller('Graph')
 export class GraphController {
   constructor(private readonly graphService: GraphService) {}

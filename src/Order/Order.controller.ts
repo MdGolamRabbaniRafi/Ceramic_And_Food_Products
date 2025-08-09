@@ -10,7 +10,9 @@ import {
 } from '@nestjs/common';
 import { OrderEntity } from './Order.entity';
 import { OrderService } from './Order.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('order')
 @Controller('Order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}

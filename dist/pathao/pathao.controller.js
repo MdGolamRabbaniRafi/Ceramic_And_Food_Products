@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PathaoController = void 0;
 const common_1 = require("@nestjs/common");
 const pathao_service_1 = require("./pathao.service");
+const swagger_1 = require("@nestjs/swagger");
 let PathaoController = class PathaoController {
     constructor(pathaoService) {
         this.pathaoService = pathaoService;
@@ -34,6 +35,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PathaoController.prototype, "createOrder", null);
 exports.PathaoController = PathaoController = __decorate([
+    (0, swagger_1.ApiTags)('pathao'),
     (0, common_1.Controller)('pathao'),
     __metadata("design:paramtypes", [pathao_service_1.PathaoService])
 ], PathaoController);

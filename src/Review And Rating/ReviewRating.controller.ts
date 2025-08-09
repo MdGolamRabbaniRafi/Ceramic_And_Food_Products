@@ -1,7 +1,18 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ReviewRatingEntity } from './ReviewRating.entity';
 import { ReviewRatingService } from './ReviewRating.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Review Rating')
 @Controller('ReviewRating')
 export class ReviewRatingController {
   constructor(private readonly ReviewRatingService: ReviewRatingService) {}
@@ -11,35 +22,43 @@ export class ReviewRatingController {
     return this.ReviewRatingService.getHello();
   }
   @Post('/addReviewRating')
-  async addReviewRating(@Body() ReviewRatingData:ReviewRatingEntity):Promise<boolean|any>
-  {
+  async addReviewRating(
+    @Body() ReviewRatingData: ReviewRatingEntity,
+  ): Promise<boolean | any> {
     return await this.ReviewRatingService.addReviewRating(ReviewRatingData);
   }
   @Get('/search/:userId/:productId')
-  async SearchByUserID(@Param('userId', ParseIntPipe) userId:number,@Param('productId', ParseIntPipe) productId:number):Promise<any>
-  {
-    return await this.ReviewRatingService.findByUserId(userId,productId);
+  async SearchByUserID(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+  ): Promise<any> {
+    return await this.ReviewRatingService.findByUserId(userId, productId);
   }
   @Get('/search/:productId')
-  async SearchByProductID(@Param('productId', ParseIntPipe) productId:number):Promise<any>
-  {
+  async SearchByProductID(
+    @Param('productId', ParseIntPipe) productId: number,
+  ): Promise<any> {
     return await this.ReviewRatingService.SearchByProductID(productId);
   }
   @Put('/update/:userId/:productId')
-  async update(@Param('userId', ParseIntPipe) userId:number,
-  @Param('productId', ParseIntPipe) productId:number,
-  @Body()updateData:ReviewRatingEntity):Promise<any>
-  {
-    return await this.ReviewRatingService.update(userId,productId,updateData);
+  async update(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Body() updateData: ReviewRatingEntity,
+  ): Promise<any> {
+    return await this.ReviewRatingService.update(userId, productId, updateData);
   }
   @Get('/averageRating/:productId')
-  async averageRating(@Param('productId', ParseIntPipe) productId:number):Promise<any>
-  {
+  async averageRating(
+    @Param('productId', ParseIntPipe) productId: number,
+  ): Promise<any> {
     return await this.ReviewRatingService.averageRating(productId);
   }
   @Delete('/remove/:userId/:productId')
-  async DeleteByUserID(@Param('userId', ParseIntPipe) userId:number,@Param('productId', ParseIntPipe) productId:number):Promise<any>
-  {
-    return await this.ReviewRatingService.DeleteByUserID(userId,productId);
+  async DeleteByUserID(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+  ): Promise<any> {
+    return await this.ReviewRatingService.DeleteByUserID(userId, productId);
   }
 }

@@ -11,6 +11,9 @@ export class OfferEntity {
   @Column({ type: 'text' })
   description: string;
 
+  @Column({ name: 'Status', type: 'boolean', default: true })
+  isActive: boolean;
+
   @Column()
   image: string; // Store the file path or URL
 

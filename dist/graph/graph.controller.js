@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GraphController = void 0;
 const common_1 = require("@nestjs/common");
 const graph_service_1 = require("./graph.service");
+const swagger_1 = require("@nestjs/swagger");
 let GraphController = class GraphController {
     constructor(graphService) {
         this.graphService = graphService;
@@ -89,6 +90,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], GraphController.prototype, "getCategoriesWithProductCount", null);
 exports.GraphController = GraphController = __decorate([
+    (0, swagger_1.ApiTags)('Graph'),
     (0, common_1.Controller)('Graph'),
     __metadata("design:paramtypes", [graph_service_1.GraphService])
 ], GraphController);

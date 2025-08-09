@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DiscountController = void 0;
 const common_1 = require("@nestjs/common");
 const Discount_service_1 = require("./Discount.service");
+const swagger_1 = require("@nestjs/swagger");
 let DiscountController = class DiscountController {
     constructor(discountService) {
         this.discountService = discountService;
@@ -84,6 +85,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], DiscountController.prototype, "applyDiscount", null);
 exports.DiscountController = DiscountController = __decorate([
+    (0, swagger_1.ApiTags)('Discount'),
     (0, common_1.Controller)('Discount'),
     __metadata("design:paramtypes", [Discount_service_1.DiscountService])
 ], DiscountController);

@@ -27,6 +27,10 @@ __decorate([
     __metadata("design:type", String)
 ], OfferEntity.prototype, "description", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'Status', type: 'boolean', default: true }),
+    __metadata("design:type", Boolean)
+], OfferEntity.prototype, "isActive", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], OfferEntity.prototype, "image", void 0);

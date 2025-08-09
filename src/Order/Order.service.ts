@@ -485,6 +485,7 @@ export class OrderService {
         await this.orderProductMapperRepo.save(mapper);
         console.log('Mapper saved');
       }
+      
 
       return savedOrder
         ? `Order placed successfully.`

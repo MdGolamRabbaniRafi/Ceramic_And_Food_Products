@@ -18,7 +18,9 @@ import { AuthService } from './Auth.service';
 import { JwtGaurd } from './Gaurds/jwt-auth.gaurd';
 import { LocalGaurd } from './Gaurds/local-auth.gaurd';
 import { refreshJwtGaurd } from './Gaurds/refresh-jwt-auth.gaurd';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

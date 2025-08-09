@@ -22,10 +22,12 @@ export declare class AuthService {
         registration_date: Date;
         role: string;
         Image: string;
+        isActive: boolean;
         cart: import("../Cart/Cart.entity").CartEntity[];
         order: import("../Cart/Cart.entity").CartEntity[];
         ReviewRating: import("../Review And Rating/ReviewRating.entity").ReviewRatingEntity[];
         wishlist: import("../WishList/WishList.entity").WishListEntity[];
+        payment: import("../WishList/WishList.entity").WishListEntity[];
     }>;
     validateRefreshToken(token: string): Promise<any>;
     RefreshToken(refreshToken: string, req: any): Promise<{

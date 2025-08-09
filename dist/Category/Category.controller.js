@@ -16,6 +16,7 @@ exports.CategoryController = void 0;
 const common_1 = require("@nestjs/common");
 const Category_entity_1 = require("./Category.entity");
 const Category_service_1 = require("./Category.service");
+const swagger_1 = require("@nestjs/swagger");
 let CategoryController = class CategoryController {
     constructor(categoryService) {
         this.categoryService = categoryService;
@@ -82,6 +83,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CategoryController.prototype, "deleteCategory", null);
 exports.CategoryController = CategoryController = __decorate([
+    (0, swagger_1.ApiTags)('Category'),
     (0, common_1.Controller)('Category'),
     __metadata("design:paramtypes", [Category_service_1.CategoryService])
 ], CategoryController);

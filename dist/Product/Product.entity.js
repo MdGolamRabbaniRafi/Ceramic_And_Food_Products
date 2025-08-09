@@ -27,31 +27,40 @@ __decorate([
     __metadata("design:type", Number)
 ], ProductEntity.prototype, "Id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'name', type: "varchar", length: 150 }),
+    (0, typeorm_1.Column)({ name: 'name', type: 'varchar', length: 150 }),
     __metadata("design:type", String)
 ], ProductEntity.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'desc', type: "varchar", length: 150 }),
+    (0, typeorm_1.Column)({
+        name: 'desc',
+        type: 'varchar',
+        length: 1500,
+        default: 'No description available',
+    }),
     __metadata("design:type", String)
 ], ProductEntity.prototype, "desc", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'price', type: "decimal" }),
+    (0, typeorm_1.Column)({ name: 'price', type: 'decimal' }),
     __metadata("design:type", Number)
 ], ProductEntity.prototype, "price", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'quantity', type: "integer" }),
+    (0, typeorm_1.Column)({ name: 'quantity', type: 'integer' }),
     __metadata("design:type", Number)
 ], ProductEntity.prototype, "quantity", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'image', type: "varchar", length: 1500 }),
+    (0, typeorm_1.Column)({ name: 'image', type: 'varchar', length: 1500 }),
     __metadata("design:type", String)
 ], ProductEntity.prototype, "image", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'date', type: "timestamp" }),
+    (0, typeorm_1.Column)({ name: 'Status', type: 'boolean', default: true }),
+    __metadata("design:type", Boolean)
+], ProductEntity.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'date', type: 'timestamp' }),
     __metadata("design:type", Date)
 ], ProductEntity.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'json_atribute', type: "json" }),
+    (0, typeorm_1.Column)({ name: 'json_atribute', type: 'json' }),
     __metadata("design:type", Object)
 ], ProductEntity.prototype, "json_attribute", void 0);
 __decorate([
@@ -63,23 +72,25 @@ __decorate([
     __metadata("design:type", Array)
 ], ProductEntity.prototype, "orders", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Category_entity_1.CategoryEntity, category => category.product),
+    (0, typeorm_1.ManyToOne)(() => Category_entity_1.CategoryEntity, (category) => category.product),
     __metadata("design:type", Category_entity_1.CategoryEntity)
 ], ProductEntity.prototype, "category", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => Collection_entity_1.CollectionEntity, collection => collection.products),
+    (0, typeorm_1.ManyToMany)(() => Collection_entity_1.CollectionEntity, (collection) => collection.products),
     __metadata("design:type", Array)
 ], ProductEntity.prototype, "collections", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => ReviewRating_entity_1.ReviewRatingEntity, ReviewRating => ReviewRating.product),
+    (0, typeorm_1.OneToMany)(() => ReviewRating_entity_1.ReviewRatingEntity, (ReviewRating) => ReviewRating.product),
     __metadata("design:type", Array)
 ], ProductEntity.prototype, "ReviewRating", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => WishList_entity_1.WishListEntity, wishlist => wishlist.product),
+    (0, typeorm_1.OneToMany)(() => WishList_entity_1.WishListEntity, (wishlist) => wishlist.product),
     __metadata("design:type", Array)
 ], ProductEntity.prototype, "wishlist", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Discount_entity_1.DiscountEntity, (discount) => discount.products, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => Discount_entity_1.DiscountEntity, (discount) => discount.products, {
+        nullable: true,
+    }),
     (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", Discount_entity_1.DiscountEntity)
 ], ProductEntity.prototype, "discount", void 0);
@@ -90,6 +101,6 @@ __decorate([
     __metadata("design:type", Array)
 ], ProductEntity.prototype, "orderProductMappers", void 0);
 exports.ProductEntity = ProductEntity = __decorate([
-    (0, typeorm_1.Entity)("Product")
+    (0, typeorm_1.Entity)('Product')
 ], ProductEntity);
 //# sourceMappingURL=Product.entity.js.map

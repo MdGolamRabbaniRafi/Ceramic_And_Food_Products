@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderController = void 0;
 const common_1 = require("@nestjs/common");
 const Order_service_1 = require("./Order.service");
+const swagger_1 = require("@nestjs/swagger");
 let OrderController = class OrderController {
     constructor(orderService) {
         this.orderService = orderService;
@@ -102,6 +103,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "getOrdersByUserId", null);
 exports.OrderController = OrderController = __decorate([
+    (0, swagger_1.ApiTags)('order'),
     (0, common_1.Controller)('Order'),
     __metadata("design:paramtypes", [Order_service_1.OrderService])
 ], OrderController);

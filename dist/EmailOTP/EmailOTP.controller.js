@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailOTPController = void 0;
 const common_1 = require("@nestjs/common");
 const EmailOTP_service_1 = require("./EmailOTP.service");
+const swagger_1 = require("@nestjs/swagger");
 let EmailOTPController = class EmailOTPController {
     constructor(otpService) {
         this.otpService = otpService;
@@ -48,6 +49,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], EmailOTPController.prototype, "checkOtp", null);
 exports.EmailOTPController = EmailOTPController = __decorate([
+    (0, swagger_1.ApiTags)('Email'),
     (0, common_1.Controller)('EmailOTP'),
     __metadata("design:paramtypes", [EmailOTP_service_1.EmailOTPService])
 ], EmailOTPController);

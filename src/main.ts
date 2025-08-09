@@ -1,39 +1,47 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
- // console.log("Fahim")
   const app = await NestFactory.create(AppModule);
+
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-  Logger.log('------------------------------------------------------------');
 
-    Logger.log('------------------------------------------------------------');
-    Logger.log(`PG Database`);
-    Logger.log('------------------------------------------------------------');
-    Logger.log(`Host: ${process.env.DATABASE_HOST}`);
-    Logger.log(`Port: ${process.env.DATABASE_PORT}`);
-    Logger.log(`User: ${process.env.DATABASE_USER}`);
-    Logger.log(`Database: ${process.env.DATABASE_NAME}`);
-        Logger.log(`User: ${process.env.DATABASE_PASSWORD}`);
+  // Swagger Setup
+  const config = new DocumentBuilder()
+    .setTitle('Farseit API')
+    .setDescription('API documentation for Farseit backend')
+    .setVersion('1.0')
+    .addBearerAuth() // Optional: if using JWT
+    .build();
 
-    Logger.log('------------------------------------------------------------');
-      Logger.log('------------------------------------------------------------');
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document); // Accessible at /api
 
-    Logger.log('------------------------------------------------------------');
-    Logger.log(`Email`);
-    Logger.log('------------------------------------------------------------');
-    Logger.log(`Host: ${process.env.EMAIL_HOST}`);
-    Logger.log(`Port: ${process.env.EMAIL_FROM}`);
-    Logger.log(`User: ${process.env.EMAIL_USER}`);
-    Logger.log(`Database: ${process.env.EMAIL_PASS}`);
-        Logger.log(`User: ${process.env.EMAIL_PORT}`);
+  // Console Logging Environment Variables
+  console.log('------------------------------------------------------------');
+  console.log('PG Database');
+  console.log('------------------------------------------------------------');
+  console.log(`Host: ${process.env.DATABASE_HOST}`);
+  console.log(`Port: ${process.env.DATABASE_PORT}`);
+  console.log(`User: ${process.env.DATABASE_USER}`);
+  console.log(`Password: ${process.env.DATABASE_PASSWORD}`);
+  console.log(`Database: ${process.env.DATABASE_NAME}`);
+  console.log('------------------------------------------------------------');
+  console.log('Email');
+  console.log('------------------------------------------------------------');
+  console.log(`Host: ${process.env.EMAIL_HOST}`);
+  console.log(`From: ${process.env.EMAIL_FROM}`);
+  console.log(`User: ${process.env.EMAIL_USER}`);
+  console.log(`Pass: ${process.env.EMAIL_PASS}`);
+  console.log(`Port: ${process.env.EMAIL_PORT}`);
+  console.log('------------------------------------------------------------');
 
-    Logger.log('------------------------------------------------------------');
   await app.listen(7000);
 }
 bootstrap();

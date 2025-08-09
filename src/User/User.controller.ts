@@ -20,6 +20,9 @@ import { Roles } from 'src/Auth/Role/Roles.decorate';
 import { RolesGaurd } from 'src/Auth/Role/Roles.gaurd';
 import { UserEntity } from './User.entity';
 import { UserService } from './User.service';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('User')
 @Controller('User')
 export class UserController {
   constructor(private readonly userService: UserService) {}

@@ -16,6 +16,7 @@ exports.ReviewRatingController = void 0;
 const common_1 = require("@nestjs/common");
 const ReviewRating_entity_1 = require("./ReviewRating.entity");
 const ReviewRating_service_1 = require("./ReviewRating.service");
+const swagger_1 = require("@nestjs/swagger");
 let ReviewRatingController = class ReviewRatingController {
     constructor(ReviewRatingService) {
         this.ReviewRatingService = ReviewRatingService;
@@ -96,6 +97,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReviewRatingController.prototype, "DeleteByUserID", null);
 exports.ReviewRatingController = ReviewRatingController = __decorate([
+    (0, swagger_1.ApiTags)('Review Rating'),
     (0, common_1.Controller)('ReviewRating'),
     __metadata("design:paramtypes", [ReviewRating_service_1.ReviewRatingService])
 ], ReviewRatingController);

@@ -109,7 +109,7 @@ export class AuthService {
       console.log(verifyOTP.message)
       if(verifyOTP.message=='OTP verified successfully')
       {
-        const userEntity = new UserEntity();
+    const userEntity = new UserEntity();
     userEntity.name = verifyOTP.user.name;
     userEntity.email = verifyOTP.user.email;
     userEntity.address = verifyOTP.user.address;

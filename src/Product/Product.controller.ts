@@ -16,7 +16,9 @@ import { extname, normalize, resolve } from 'path';
 import { CategoryEntity } from 'src/Category/Category.entity';
 import { ProductEntity } from './Product.entity';
 import { ProductService } from './Product.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Product')
 @Controller('Product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -56,17 +58,18 @@ export class ProductController {
     return null;
   }
 
-@Get('/search/category/:id')
-async SearchByCategoryID(@Param('id', ParseIntPipe) categoryId: number): Promise<any> {
-  const products = await this.productService.SearchByCategoryID(categoryId);
+  @Get('/search/category/:id')
+  async SearchByCategoryID(
+    @Param('id', ParseIntPipe) categoryId: number,
+  ): Promise<any> {
+    const products = await this.productService.SearchByCategoryID(categoryId);
 
-  if (products) {
-    return products;
+    if (products) {
+      return products;
+    }
+
+    return { message: 'No products found in this category' };
   }
-
-  return { message: 'No products found in this category' };
-}
-
 
   @Post('/add')
   @UseInterceptors(

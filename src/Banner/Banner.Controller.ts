@@ -18,7 +18,9 @@ import { diskStorage } from 'multer';
 import { extname, resolve } from 'path';
 import { BannerEntity } from './Banner.entity';
 import { BannerService } from './Banner.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Banner')
 @Controller('Banner')
 export class BannerController {
   constructor(private readonly BannerService: BannerService) {}
@@ -184,9 +186,7 @@ export class BannerController {
     }
   }
 
-
-
-   @Delete('/forcefullyDelete/:id')
+  @Delete('/forcefullyDelete/:id')
   async forcefullyDelete(
     @Param('id') id: number,
     @Res() res: Response,

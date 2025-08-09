@@ -15,7 +15,9 @@ import { diskStorage, MulterError } from 'multer';
 import { extname, resolve } from 'path';
 import { OfferEntity } from './Offer.entity';
 import { OfferService } from './Offer.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('offers')
 @Controller('offers')
 export class OfferController {
   constructor(private readonly offerService: OfferService) {}

@@ -15,10 +15,12 @@ export declare class AuthController {
         registration_date: Date;
         role: string;
         Image: string;
+        isActive: boolean;
         cart: import("../Cart/Cart.entity").CartEntity[];
         order: import("../Cart/Cart.entity").CartEntity[];
         ReviewRating: import("../Review And Rating/ReviewRating.entity").ReviewRatingEntity[];
         wishlist: import("../WishList/WishList.entity").WishListEntity[];
+        payment: import("../WishList/WishList.entity").WishListEntity[];
     }>;
     SignUp(userEntity: UserEntity, myfile: Express.Multer.File): Promise<any>;
     checkOtp(email: string, otp: string): Promise<any>;

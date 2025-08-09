@@ -18,6 +18,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
 const path_1 = require("path");
 const Banner_service_1 = require("./Banner.service");
+const swagger_1 = require("@nestjs/swagger");
 let BannerController = class BannerController {
     constructor(BannerService) {
         this.BannerService = BannerService;
@@ -223,6 +224,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BannerController.prototype, "forcefullyDelete", null);
 exports.BannerController = BannerController = __decorate([
+    (0, swagger_1.ApiTags)('Banner'),
     (0, common_1.Controller)('Banner'),
     __metadata("design:paramtypes", [Banner_service_1.BannerService])
 ], BannerController);

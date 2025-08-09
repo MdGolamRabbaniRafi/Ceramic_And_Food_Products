@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CartController = void 0;
 const common_1 = require("@nestjs/common");
 const Cart_service_1 = require("./Cart.service");
+const swagger_1 = require("@nestjs/swagger");
 let CartController = class CartController {
     constructor(cartService) {
         this.cartService = cartService;
@@ -86,6 +87,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CartController.prototype, "ProductCount", null);
 exports.CartController = CartController = __decorate([
+    (0, swagger_1.ApiTags)('cart'),
     (0, common_1.Controller)('cart'),
     __metadata("design:paramtypes", [Cart_service_1.CartService])
 ], CartController);

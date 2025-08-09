@@ -16,6 +16,7 @@ exports.WishListController = void 0;
 const common_1 = require("@nestjs/common");
 const WishList_service_1 = require("./WishList.service");
 const WishList_entity_1 = require("./WishList.entity");
+const swagger_1 = require("@nestjs/swagger");
 let WishListController = class WishListController {
     constructor(wishlistService) {
         this.wishlistService = wishlistService;
@@ -55,6 +56,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WishListController.prototype, "deleteWishListProduct", null);
 exports.WishListController = WishListController = __decorate([
+    (0, swagger_1.ApiTags)('Wishlist'),
     (0, common_1.Controller)('WishList'),
     __metadata("design:paramtypes", [WishList_service_1.WishListService])
 ], WishListController);

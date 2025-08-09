@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CollectionController = void 0;
 const common_1 = require("@nestjs/common");
 const Collection_service_1 = require("./Collection.service");
+const swagger_1 = require("@nestjs/swagger");
 let CollectionController = class CollectionController {
     constructor(CollectionService) {
         this.CollectionService = CollectionService;
@@ -83,6 +84,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CollectionController.prototype, "deleteCollection", null);
 exports.CollectionController = CollectionController = __decorate([
+    (0, swagger_1.ApiTags)('Collection'),
     (0, common_1.Controller)('Collection'),
     __metadata("design:paramtypes", [Collection_service_1.CollectionService])
 ], CollectionController);

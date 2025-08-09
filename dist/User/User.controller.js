@@ -22,6 +22,7 @@ const Role_enum_1 = require("../Auth/Role/Role.enum");
 const Roles_decorate_1 = require("../Auth/Role/Roles.decorate");
 const Roles_gaurd_1 = require("../Auth/Role/Roles.gaurd");
 const User_service_1 = require("./User.service");
+const swagger_1 = require("@nestjs/swagger");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -178,6 +179,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "forceFullyDelete", null);
 exports.UserController = UserController = __decorate([
+    (0, swagger_1.ApiTags)('User'),
     (0, common_1.Controller)('User'),
     __metadata("design:paramtypes", [User_service_1.UserService])
 ], UserController);

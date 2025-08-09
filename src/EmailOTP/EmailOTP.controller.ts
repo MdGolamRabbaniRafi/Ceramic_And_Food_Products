@@ -1,7 +1,9 @@
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { EmailOTPService } from './EmailOTP.service';
 import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Email')
 @Controller('EmailOTP')
 export class EmailOTPController {
   constructor(private readonly otpService: EmailOTPService) {}

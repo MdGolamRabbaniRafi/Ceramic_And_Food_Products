@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CuponController = void 0;
 const common_1 = require("@nestjs/common");
 const Cupon_service_1 = require("./Cupon.service");
+const swagger_1 = require("@nestjs/swagger");
 let CuponController = class CuponController {
     constructor(cuponService) {
         this.cuponService = cuponService;
@@ -72,6 +73,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CuponController.prototype, "deleteCupon", null);
 exports.CuponController = CuponController = __decorate([
+    (0, swagger_1.ApiTags)('Cupon'),
     (0, common_1.Controller)('Cupon'),
     __metadata("design:paramtypes", [Cupon_service_1.CuponService])
 ], CuponController);

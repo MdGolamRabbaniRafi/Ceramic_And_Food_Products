@@ -22,6 +22,7 @@ const Auth_service_1 = require("./Auth.service");
 const jwt_auth_gaurd_1 = require("./Gaurds/jwt-auth.gaurd");
 const local_auth_gaurd_1 = require("./Gaurds/local-auth.gaurd");
 const refresh_jwt_auth_gaurd_1 = require("./Gaurds/refresh-jwt-auth.gaurd");
+const swagger_1 = require("@nestjs/swagger");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -188,6 +189,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "GoogleAuth", null);
 exports.AuthController = AuthController = __decorate([
+    (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [Auth_service_1.AuthService])
 ], AuthController);

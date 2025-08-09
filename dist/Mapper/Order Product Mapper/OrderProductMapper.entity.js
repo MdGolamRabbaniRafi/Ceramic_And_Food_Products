@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderProductMapperEntity = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const Order_entity_1 = require("../../Order/Order.entity");
 const Product_entity_1 = require("../../Product/Product.entity");
 const typeorm_1 = require("typeorm");
@@ -33,6 +34,7 @@ __decorate([
     __metadata("design:type", Object)
 ], OrderProductMapperEntity.prototype, "json_attribute", void 0);
 exports.OrderProductMapperEntity = OrderProductMapperEntity = __decorate([
+    (0, swagger_1.ApiTags)('Banner'),
     (0, typeorm_1.Entity)('OrderProductMapper')
 ], OrderProductMapperEntity);
 //# sourceMappingURL=OrderProductMapper.entity.js.map

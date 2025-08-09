@@ -31,7 +31,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { OfferModule } from './Offer/Offer.Module';
 
 @Module({
-  imports: [    
+  imports: [
     ScheduleModule.forRoot(),
 
     ConfigModule.forRoot({
@@ -48,19 +48,29 @@ import { OfferModule } from './Offer/Offer.Module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true
       }),
     }),
-    UserModule, ProductModule, CartModule, OrderModule, 
+    UserModule,
+    ProductModule,
+    CartModule,
+    OrderModule,
     AuthModule,
     CategoryModule, //OrderHistoryMapperModule, //ProductOrderMapperModule,
-    PaymentModule, DiscountModule, CollectionModule, 
+    PaymentModule,
+    DiscountModule,
+    CollectionModule,
     // ProductCollectionMapperModule,
-    BannerModule, 
-   // RedisModule, 
-    ReviewRatingModule,WishListModule, TokenModule,
-    EmailOTPModule,//ChatModule,
-    GraphModule,CuponModule,PathaoModule,OfferModule
+    BannerModule,
+    // RedisModule,
+    ReviewRatingModule,
+    WishListModule,
+    TokenModule,
+    EmailOTPModule, //ChatModule,
+    GraphModule,
+    CuponModule,
+    PathaoModule,
+    OfferModule,
   ],
   controllers: [AppController],
   providers: [AppService],

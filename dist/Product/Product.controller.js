@@ -18,6 +18,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
 const path_1 = require("path");
 const Product_service_1 = require("./Product.service");
+const swagger_1 = require("@nestjs/swagger");
 let ProductController = class ProductController {
     constructor(productService) {
         this.productService = productService;
@@ -220,6 +221,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "ForcefullyDelete", null);
 exports.ProductController = ProductController = __decorate([
+    (0, swagger_1.ApiTags)('Product'),
     (0, common_1.Controller)('Product'),
     __metadata("design:paramtypes", [Product_service_1.ProductService])
 ], ProductController);
