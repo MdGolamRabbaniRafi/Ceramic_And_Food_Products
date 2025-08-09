@@ -38,10 +38,10 @@ export class PaymentService {
     const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
 
     if (!userEmail) {
-      throw new Error(`User email is missing. user:${paymentEntity}`);
+      throw new Error(`User email is missing.`);
     }
     if (!adminEmail) {
-      throw new Error('Admin email is missing');
+      throw new Error(`Admin email is missing.${adminEmail}`);
     }
     const adminNumber = process.env.Admin_Number;
     const message = `
