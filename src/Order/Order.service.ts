@@ -65,126 +65,127 @@ export class OrderService {
 
           updatedOrderData.cupon = cupon;
         }
+        if (updatedOrderData.products) {
+          for (const product of updatedOrderData.products) {
+            console.log(
+              'json_attribute for product',
+              product.Id,
+              product.json_attribute,
+            );
 
-        for (const product of updatedOrderData.products) {
-          console.log(
-            'json_attribute for product',
-            product.Id,
-            product.json_attribute,
-          );
-
-          const productResponse = await this.productService.SearchByID(
-            product.Id,
-          );
-          if (!productResponse) {
-            throw new Error(`Product with ID ${product.Id} not found.`);
-          }
-
-          const price = parseFloat(productResponse.price);
-          if (isNaN(price)) {
-            throw new Error(`Invalid price for product ID ${product.Id}`);
-          }
-
-          // Calculate prices
-          totalOriginalPrice += price;
-          if (productResponse.discount) {
-            const discountPercent =
-              productResponse.discount.discountPercentage || 0;
-            totalDiscountedPrice += price - (price * discountPercent) / 100;
-          } else {
-            totalDiscountedPrice += price;
-          }
-
-          // Validate and decrement quantities in json_attributes
-          let jsonAttribute: any = productResponse.json_attribute || {};
-          if (product.json_attribute) {
-            try {
-              jsonAttribute =
-                typeof product.json_attribute === 'string'
-                  ? JSON.parse(product.json_attribute)
-                  : product.json_attribute;
-
-              if ('attributes' in jsonAttribute) {
-                const attributes = productResponse.json_attribute.attributes;
-
-                for (const [key, value] of Object.entries(
-                  jsonAttribute.attributes,
-                )) {
-                  if (!attributes[key]) {
-                    throw new Error(
-                      `Attribute "${key}" not found for product ${product.Id}.`,
-                    );
-                  }
-
-                  for (const [subKey, qty] of Object.entries(value)) {
-                    if (!attributes[key][subKey]) {
-                      throw new Error(
-                        `Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`,
-                      );
-                    }
-
-                    if (attributes[key][subKey] < qty) {
-                      throw new Error(
-                        `Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`,
-                      );
-                    }
-
-                    attributes[key][subKey] -= qty;
-                    console.log(
-                      `Decremented ${subKey} in ${key} for product ${product.Id}`,
-                    );
-                  }
-                }
-
-                productResponse.json_attribute = { attributes };
-              } else {
-                throw new Error(
-                  `Malformed attributes for product ${product.Id}.`,
-                );
-              }
-            } catch (error) {
-              console.error(
-                `Error processing attributes for product ${product.Id}:`,
-                error.message,
-              );
-              throw error;
+            const productResponse = await this.productService.SearchByID(
+              product.Id,
+            );
+            if (!productResponse) {
+              throw new Error(`Product with ID ${product.Id} not found.`);
             }
-          } else {
-            throw new Error('json_attribute not found for product');
+
+            const price = parseFloat(productResponse.price);
+            if (isNaN(price)) {
+              throw new Error(`Invalid price for product ID ${product.Id}`);
+            }
+
+            // Calculate prices
+            totalOriginalPrice += price;
+            if (productResponse.discount) {
+              const discountPercent =
+                productResponse.discount.discountPercentage || 0;
+              totalDiscountedPrice += price - (price * discountPercent) / 100;
+            } else {
+              totalDiscountedPrice += price;
+            }
+
+            // Validate and decrement quantities in json_attributes
+            let jsonAttribute: any = productResponse.json_attribute || {};
+            if (product.json_attribute) {
+              try {
+                jsonAttribute =
+                  typeof product.json_attribute === 'string'
+                    ? JSON.parse(product.json_attribute)
+                    : product.json_attribute;
+
+                if ('attributes' in jsonAttribute) {
+                  const attributes = productResponse.json_attribute.attributes;
+
+                  for (const [key, value] of Object.entries(
+                    jsonAttribute.attributes,
+                  )) {
+                    if (!attributes[key]) {
+                      throw new Error(
+                        `Attribute "${key}" not found for product ${product.Id}.`,
+                      );
+                    }
+
+                    for (const [subKey, qty] of Object.entries(value)) {
+                      if (!attributes[key][subKey]) {
+                        throw new Error(
+                          `Sub-attribute "${subKey}" not found in "${key}" for product ${product.Id}.`,
+                        );
+                      }
+
+                      if (attributes[key][subKey] < qty) {
+                        throw new Error(
+                          `Insufficient quantity for "${subKey}" in "${key}" for product ${product.Id}.`,
+                        );
+                      }
+
+                      attributes[key][subKey] -= qty;
+                      console.log(
+                        `Decremented ${subKey} in ${key} for product ${product.Id}`,
+                      );
+                    }
+                  }
+
+                  productResponse.json_attribute = { attributes };
+                } else {
+                  throw new Error(
+                    `Malformed attributes for product ${product.Id}.`,
+                  );
+                }
+              } catch (error) {
+                console.error(
+                  `Error processing attributes for product ${product.Id}:`,
+                  error.message,
+                );
+                throw error;
+              }
+            } else {
+              throw new Error('json_attribute not found for product');
+            }
+
+            // Decrement total product quantity
+            productResponse.quantity -= product.quantity;
+            if (productResponse.quantity < 0) {
+              return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+            }
+
+            if (
+              productResponse.quantity === undefined ||
+              productResponse.json_attribute === undefined
+            ) {
+              throw new Error('Quantity or JSON attribute not defined.');
+            }
+
+            console.log(
+              'Updating product with:',
+              productResponse.Id,
+              productResponse.quantity,
+              productResponse.json_attribute,
+            );
+
+            await this.productService.updateProductQuantity({
+              Id: productResponse.Id,
+              quantity: productResponse.quantity,
+              json_attribute: productResponse.json_attribute,
+            });
+
+            const orderProductMapper = this.orderProductMapperRepo.create({
+              product: productResponse,
+              json_attribute: jsonAttribute,
+            });
+
+            orderProductMappers.push(orderProductMapper);
           }
-
-          // Decrement total product quantity
-          productResponse.quantity -= product.quantity;
-          if (productResponse.quantity < 0) {
-            return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
-          }
-
-          if (
-            productResponse.quantity === undefined ||
-            productResponse.json_attribute === undefined
-          ) {
-            throw new Error('Quantity or JSON attribute not defined.');
-          }
-
-          console.log(
-            'Updating product with:',
-            productResponse.Id,
-            productResponse.quantity,
-            productResponse.json_attribute,
-          );
-
-          await this.productService.updateProductQuantity({
-            Id: productResponse.Id,
-            quantity: productResponse.quantity,
-            json_attribute: productResponse.json_attribute,
-          });
-
-          const orderProductMapper = this.orderProductMapperRepo.create({
-            product: productResponse,
-            json_attribute: jsonAttribute,
-          });
-
-          orderProductMappers.push(orderProductMapper);
         }
 
         updatedOrderData.originalPrice = totalOriginalPrice;
@@ -485,7 +486,6 @@ export class OrderService {
         await this.orderProductMapperRepo.save(mapper);
         console.log('Mapper saved');
       }
-      
 
       return savedOrder
         ? `Order placed successfully.`
