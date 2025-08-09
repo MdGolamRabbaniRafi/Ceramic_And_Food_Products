@@ -42,7 +42,7 @@ let PaymentService = class PaymentService {
             where: { Id: paymentEntity.userId },
         });
         const userEmail = paymentEntity.user?.email;
-        const adminEmail = this.configService.get('ADMIN_EMAIL');
+        const adminEmail = process.env.Admin_Email;
         if (!userEmail) {
             throw new Error(`User email is missing.`);
         }
