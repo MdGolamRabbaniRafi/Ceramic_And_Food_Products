@@ -65,7 +65,10 @@ export class OrderService {
 
           updatedOrderData.cupon = cupon;
         }
-        if (updatedOrderData.products) {
+        if (
+          updatedOrderData.products ||
+          updatedOrderData.products != undefined
+        ) {
           for (const product of updatedOrderData.products) {
             console.log(
               'json_attribute for product',
