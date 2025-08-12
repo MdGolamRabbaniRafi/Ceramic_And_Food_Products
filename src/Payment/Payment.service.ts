@@ -5,6 +5,7 @@ import { PaymentEntity } from './Payment.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { UserEntity } from 'src/User/User.entity';
+import { OrderEntity } from 'src/Order/Order.entity';
 
 @Injectable()
 export class PaymentService {
@@ -13,7 +14,8 @@ export class PaymentService {
     private userRepo: Repository<UserEntity>,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-
+    @InjectRepository(OrderEntity)
+    private orderRepo: Repository<OrderEntity>,
     @InjectRepository(PaymentEntity)
     private paymentRepo: Repository<PaymentEntity>,
   ) {}
@@ -138,8 +140,6 @@ export class PaymentService {
           html: message2,
         }),
       ]);
-      console.log('results:', results);
-
       // Check if at least one succeeded
       const success = results.some((result) => result.status === 'fulfilled');
 
@@ -184,6 +184,11 @@ export class PaymentService {
         where: { Id: id },
         relations: ['user'],
       });
+      if (paymentData.orderId) {
+        await this.orderRepo.update(paymentData.orderId, {
+          status: 'shipped',
+        });
+      }
       const adminNumber = process.env.Admin_Number;
       const message = `
         <!DOCTYPE html>
@@ -235,10 +240,7 @@ export class PaymentService {
     return this.paymentRepo
       .createQueryBuilder('payment')
       .leftJoin('payment.user', 'user')
-      .select([
-        'payment', 
-        'user.name', 
-      ])
+      .select(['payment', 'user.name'])
       .getMany();
   }
 

@@ -20,11 +20,13 @@ const Payment_entity_1 = require("./Payment.entity");
 const mailer_1 = require("@nestjs-modules/mailer");
 const config_1 = require("@nestjs/config");
 const User_entity_1 = require("../User/User.entity");
+const Order_entity_1 = require("../Order/Order.entity");
 let PaymentService = class PaymentService {
-    constructor(userRepo, mailerService, configService, paymentRepo) {
+    constructor(userRepo, mailerService, configService, orderRepo, paymentRepo) {
         this.userRepo = userRepo;
         this.mailerService = mailerService;
         this.configService = configService;
+        this.orderRepo = orderRepo;
         this.paymentRepo = paymentRepo;
     }
     getHello() {
@@ -142,7 +144,6 @@ let PaymentService = class PaymentService {
                     html: message2,
                 }),
             ]);
-            console.log('results:', results);
             const success = results.some((result) => result.status === 'fulfilled');
             if (!success) {
                 console.error('Both emails failed to send:', results);
@@ -179,6 +180,11 @@ let PaymentService = class PaymentService {
                 where: { Id: id },
                 relations: ['user'],
             });
+            if (paymentData.orderId) {
+                await this.orderRepo.update(paymentData.orderId, {
+                    status: 'shipped',
+                });
+            }
             const adminNumber = process.env.Admin_Number;
             const message = `
         <!DOCTYPE html>
@@ -231,10 +237,7 @@ let PaymentService = class PaymentService {
         return this.paymentRepo
             .createQueryBuilder('payment')
             .leftJoin('payment.user', 'user')
-            .select([
-            'payment',
-            'user.name',
-        ])
+            .select(['payment', 'user.name'])
             .getMany();
     }
     async findOneById(id) {
@@ -248,10 +251,12 @@ exports.PaymentService = PaymentService;
 exports.PaymentService = PaymentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(User_entity_1.UserEntity)),
-    __param(3, (0, typeorm_1.InjectRepository)(Payment_entity_1.PaymentEntity)),
+    __param(3, (0, typeorm_1.InjectRepository)(Order_entity_1.OrderEntity)),
+    __param(4, (0, typeorm_1.InjectRepository)(Payment_entity_1.PaymentEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         mailer_1.MailerService,
         config_1.ConfigService,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], PaymentService);
 //# sourceMappingURL=Payment.service.js.map
