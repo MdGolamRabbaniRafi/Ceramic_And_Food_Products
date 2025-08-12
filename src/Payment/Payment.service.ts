@@ -231,9 +231,15 @@ export class PaymentService {
       return result.affected > 0;
     } catch {}
   }
-
-  async findAll(): Promise<PaymentEntity[]> {
-    return this.paymentRepo.find();
+  async findAll(): Promise<any[]> {
+    return this.paymentRepo
+      .createQueryBuilder('payment')
+      .leftJoin('payment.user', 'user')
+      .select([
+        'payment', 
+        'user.name', 
+      ])
+      .getMany();
   }
 
   async findOneById(id: number): Promise<PaymentEntity> {

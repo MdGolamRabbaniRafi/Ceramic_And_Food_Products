@@ -228,7 +228,14 @@ let PaymentService = class PaymentService {
         catch { }
     }
     async findAll() {
-        return this.paymentRepo.find();
+        return this.paymentRepo
+            .createQueryBuilder('payment')
+            .leftJoin('payment.user', 'user')
+            .select([
+            'payment',
+            'user.name',
+        ])
+            .getMany();
     }
     async findOneById(id) {
         return await this.paymentRepo.findOne({

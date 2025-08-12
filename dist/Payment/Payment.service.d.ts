@@ -13,6 +13,6 @@ export declare class PaymentService {
     findById(id: number): Promise<PaymentEntity | null>;
     add(paymentEntity: PaymentEntity): Promise<boolean>;
     changeStatus(id: number, status: string): Promise<boolean>;
-    findAll(): Promise<PaymentEntity[]>;
+    findAll(): Promise<any[]>;
     findOneById(id: number): Promise<PaymentEntity>;
 }

@@ -6,6 +6,6 @@ export declare class PaymentController {
     getHello(): string;
     addOrder(paymentData: PaymentEntity, myfile: Express.Multer.File): Promise<boolean>;
     changeStatus(id: string, status: string): Promise<boolean>;
-    getAllPayments(): Promise<PaymentEntity[]>;
+    getAllPayments(): Promise<any[]>;
     getPaymentById(id: number): Promise<PaymentEntity>;
 }

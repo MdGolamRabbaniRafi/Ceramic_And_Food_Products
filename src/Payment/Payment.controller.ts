@@ -91,7 +91,7 @@ export class PaymentController {
   }
 
   @Get('/findAll')
-  async getAllPayments(): Promise<PaymentEntity[]> {
+  async getAllPayments(): Promise<any[]> {
     return this.paymentService.findAll();
   }
 
