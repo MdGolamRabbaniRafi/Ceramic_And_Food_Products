@@ -187,6 +187,7 @@ export class PaymentService {
       if (paymentData.orderId) {
         await this.orderRepo.update(paymentData.orderId, {
           status: 'shipped',
+          isActive: true
         });
       }
       const adminNumber = process.env.Admin_Number;

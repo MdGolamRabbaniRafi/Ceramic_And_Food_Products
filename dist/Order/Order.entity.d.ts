@@ -8,9 +8,13 @@ export declare class OrderEntity {
     date: Date;
     totalAmount: number;
     status: string;
+    address: string;
+    receiverPhone: string;
+    isActive: boolean;
     originalPrice: number;
     discountedPrice: number;
     user: UserEntity;
+    expireTime: Date;
     products: ProductEntity[];
     orderProductMappers: OrderProductMapperEntity[];
     cupon: CuponEntity;

@@ -22,11 +22,15 @@ __decorate([
     __metadata("design:type", Number)
 ], OrderProductMapperEntity.prototype, "Id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Order_entity_1.OrderEntity, (order) => order.products),
+    (0, typeorm_1.ManyToOne)(() => Order_entity_1.OrderEntity, (order) => order.orderProductMappers, {
+        onDelete: 'CASCADE',
+    }),
     __metadata("design:type", Order_entity_1.OrderEntity)
 ], OrderProductMapperEntity.prototype, "order", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Product_entity_1.ProductEntity, (product) => product.orders),
+    (0, typeorm_1.ManyToOne)(() => Product_entity_1.ProductEntity, (product) => product.orders, {
+        onDelete: 'CASCADE',
+    }),
     __metadata("design:type", Product_entity_1.ProductEntity)
 ], OrderProductMapperEntity.prototype, "product", void 0);
 __decorate([

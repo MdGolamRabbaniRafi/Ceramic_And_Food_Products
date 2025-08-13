@@ -5,14 +5,15 @@ import { OrderController } from './Order.controller';
 import { OrderService } from './Order.service';
 import { ProductModule } from 'src/Product/Product.module';
 import { OrderProductMapperEntity } from 'src/Mapper/Order Product Mapper/OrderProductMapper.entity';
+import { OrderCleanupService } from './Order.cleanup';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderEntity,OrderProductMapperEntity]),
-    ProductModule, 
+    TypeOrmModule.forFeature([OrderEntity, OrderProductMapperEntity]),
+    ProductModule,
   ],
   controllers: [OrderController],
-  providers: [OrderService],
-  exports: [OrderService, TypeOrmModule], 
+  providers: [OrderService, OrderCleanupService],
+  exports: [OrderService, TypeOrmModule],
 })
 export class OrderModule {}

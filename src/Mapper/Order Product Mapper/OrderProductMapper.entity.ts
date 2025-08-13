@@ -9,10 +9,14 @@ export class OrderProductMapperEntity {
   @PrimaryGeneratedColumn()
   Id: number;
 
-  @ManyToOne(() => OrderEntity, (order) => order.products)
+  @ManyToOne(() => OrderEntity, (order) => order.orderProductMappers, {
+    onDelete: 'CASCADE', // ensures child rows are removed when parent order is deleted
+  })
   order: OrderEntity;
 
-  @ManyToOne(() => ProductEntity, (product) => product.orders)
+  @ManyToOne(() => ProductEntity, (product) => product.orders, {
+    onDelete: 'CASCADE', // optional: cascade delete when product is removed
+  })
   product: ProductEntity;
 
   @Column({ type: 'json' })

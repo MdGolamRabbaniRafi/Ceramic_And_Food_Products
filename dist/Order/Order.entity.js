@@ -36,6 +36,18 @@ __decorate([
     __metadata("design:type", String)
 ], OrderEntity.prototype, "status", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    __metadata("design:type", String)
+], OrderEntity.prototype, "address", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    __metadata("design:type", String)
+], OrderEntity.prototype, "receiverPhone", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'bool', default: false }),
+    __metadata("design:type", Boolean)
+], OrderEntity.prototype, "isActive", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'decimal' }),
     __metadata("design:type", Number)
 ], OrderEntity.prototype, "originalPrice", void 0);
@@ -48,6 +60,13 @@ __decorate([
     __metadata("design:type", User_entity_1.UserEntity)
 ], OrderEntity.prototype, "user", void 0);
 __decorate([
+    (0, typeorm_1.Column)({
+        type: 'timestamp',
+        default: () => "CURRENT_TIMESTAMP + interval '10 minutes'",
+    }),
+    __metadata("design:type", Date)
+], OrderEntity.prototype, "expireTime", void 0);
+__decorate([
     (0, typeorm_1.ManyToMany)(() => Product_entity_1.ProductEntity),
     (0, typeorm_1.JoinTable)({
         name: 'Order_Product',
@@ -58,12 +77,17 @@ __decorate([
 ], OrderEntity.prototype, "products", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => OrderProductMapper_entity_1.OrderProductMapperEntity, (mapper) => mapper.order, {
+        nullable: true,
         cascade: true,
     }),
     __metadata("design:type", Array)
 ], OrderEntity.prototype, "orderProductMappers", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => Cupon_entity_1.CuponEntity, (cupon) => cupon.orders, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => Cupon_entity_1.CuponEntity, (cupon) => cupon.orders, {
+        nullable: true,
+        cascade: true,
+        onDelete: 'CASCADE',
+    }),
     __metadata("design:type", Cupon_entity_1.CuponEntity)
 ], OrderEntity.prototype, "cupon", void 0);
 __decorate([

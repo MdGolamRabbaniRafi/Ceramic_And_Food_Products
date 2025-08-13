@@ -28,6 +28,15 @@ export class OrderEntity {
   @Column({ type: 'varchar' })
   status: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  address: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  receiverPhone: string;
+
+  @Column({ type: 'bool', default: false })
+  isActive: boolean;
+
   @Column({ type: 'decimal' })
   originalPrice: number;
 
@@ -37,6 +46,12 @@ export class OrderEntity {
   @ManyToOne(() => UserEntity, (user) => user.order)
   user: UserEntity;
 
+  @Column({
+    type: 'timestamp',
+    default: () => "CURRENT_TIMESTAMP + interval '10 minutes'",
+  })
+  expireTime: Date;
+
   @ManyToMany(() => ProductEntity)
   @JoinTable({
     name: 'Order_Product',
@@ -45,10 +60,15 @@ export class OrderEntity {
   })
   products: ProductEntity[];
   @OneToMany(() => OrderProductMapperEntity, (mapper) => mapper.order, {
+    nullable: true,
     cascade: true,
   })
   orderProductMappers: OrderProductMapperEntity[];
-  @ManyToOne(() => CuponEntity, (cupon) => cupon.orders, { nullable: true })
+  @ManyToOne(() => CuponEntity, (cupon) => cupon.orders, {
+    nullable: true,
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   cupon: CuponEntity;
 
   @OneToOne(() => PaymentEntity, (payment) => payment.order)

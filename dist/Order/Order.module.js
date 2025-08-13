@@ -14,6 +14,7 @@ const Order_controller_1 = require("./Order.controller");
 const Order_service_1 = require("./Order.service");
 const Product_module_1 = require("../Product/Product.module");
 const OrderProductMapper_entity_1 = require("../Mapper/Order Product Mapper/OrderProductMapper.entity");
+const Order_cleanup_1 = require("./Order.cleanup");
 let OrderModule = class OrderModule {
 };
 exports.OrderModule = OrderModule;
@@ -24,7 +25,7 @@ exports.OrderModule = OrderModule = __decorate([
             Product_module_1.ProductModule,
         ],
         controllers: [Order_controller_1.OrderController],
-        providers: [Order_service_1.OrderService],
+        providers: [Order_service_1.OrderService, Order_cleanup_1.OrderCleanupService],
         exports: [Order_service_1.OrderService, typeorm_1.TypeOrmModule],
     })
 ], OrderModule);
