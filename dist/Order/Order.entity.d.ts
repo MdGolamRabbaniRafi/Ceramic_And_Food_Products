@@ -9,6 +9,8 @@ export declare class OrderEntity {
     totalAmount: number;
     status: string;
     address: string;
+    district: string;
+    note: string;
     receiverPhone: string;
     isActive: boolean;
     originalPrice: number;

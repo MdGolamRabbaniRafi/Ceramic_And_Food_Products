@@ -42,6 +42,14 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
     __metadata("design:type", String)
+], OrderEntity.prototype, "district", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    __metadata("design:type", String)
+], OrderEntity.prototype, "note", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', nullable: true }),
+    __metadata("design:type", String)
 ], OrderEntity.prototype, "receiverPhone", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'bool', default: false }),

@@ -32,6 +32,12 @@ export class OrderEntity {
   address: string;
 
   @Column({ type: 'varchar', nullable: true })
+  district: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  note: string;
+
+  @Column({ type: 'varchar', nullable: true })
   receiverPhone: string;
 
   @Column({ type: 'bool', default: false })
