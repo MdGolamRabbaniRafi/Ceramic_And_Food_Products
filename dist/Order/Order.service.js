@@ -193,6 +193,11 @@ let OrderService = class OrderService {
                 totalAmount: order.totalAmount,
                 date: order.date,
                 status: order.status,
+                address: order.address,
+                district: order.district,
+                note: order.note,
+                receiverPhone: order.receiverPhone,
+                isActive: order.isActive,
                 cupon: order.cupon
                     ? {
                         id: order.cupon.id,
@@ -279,11 +284,15 @@ let OrderService = class OrderService {
                     where: { id: orderData.cupon.id },
                 });
                 if (!cupon) {
-                    return `Coupon with ID ${orderData.cupon.id} is not valid.`;
+                    return {
+                        message: `Coupon with ID ${orderData.cupon.id} is not valid.`,
+                    };
                 }
                 const currentDate = new Date();
                 if (currentDate < cupon.startDate || currentDate > cupon.endDate) {
-                    return `Coupon "${cupon.name}" is not valid within the current date range.`;
+                    return {
+                        message: `Coupon "${cupon.name}" is not valid within the current date range.`,
+                    };
                 }
                 orderData.cupon = cupon;
             }
@@ -345,7 +354,9 @@ let OrderService = class OrderService {
                 }
                 productResponse.quantity -= product.quantity;
                 if (productResponse.quantity < 0) {
-                    return `The order quantity of ${productResponse.name} is greater than the remaining quantity.`;
+                    return {
+                        message: `The order quantity of ${productResponse.name} is greater than the remaining quantity.`,
+                    };
                 }
                 if (productResponse.quantity === undefined ||
                     productResponse.json_attribute === undefined) {
@@ -377,8 +388,8 @@ let OrderService = class OrderService {
                 console.log('Mapper saved');
             }
             return savedOrder
-                ? `Order placed successfully.`
-                : `Failed to place the order.`;
+                ? savedOrder
+                : { message: `Failed to place the order.` };
         }
         catch (error) {
             console.error('Error adding order:', error.message);

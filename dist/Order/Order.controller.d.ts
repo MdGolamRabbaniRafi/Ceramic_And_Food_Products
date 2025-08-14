@@ -4,7 +4,9 @@ export declare class OrderController {
     private readonly orderService;
     constructor(orderService: OrderService);
     getHello(): string;
-    addOrder(OrderData: any): Promise<string>;
+    addOrder(OrderData: any): Promise<OrderEntity | {
+        message: String;
+    }>;
     searchOrder(): Promise<any>;
     getOrderById(id: number): Promise<any>;
     editOrder(id: number, updatedOrderData: any): Promise<string>;

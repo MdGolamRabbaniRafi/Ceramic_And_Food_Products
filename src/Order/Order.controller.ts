@@ -22,7 +22,9 @@ export class OrderController {
     return this.orderService.getHello();
   }
   @Post('/add')
-  async addOrder(@Body() OrderData: any): Promise<string> {
+  async addOrder(
+    @Body() OrderData: any,
+  ): Promise<OrderEntity | { message: String }> {
     return await this.orderService.addOrder(OrderData);
   }
   @Get('/search')
