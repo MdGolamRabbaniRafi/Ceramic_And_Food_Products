@@ -44,6 +44,12 @@ let OrderController = class OrderController {
     async getOrdersByUserId(userId) {
         return await this.orderService.getOrdersByUserId(userId);
     }
+    async getInactiveOrdersByUserId(userId) {
+        return await this.orderService.getInactiveOrdersByUserId(userId);
+    }
+    async deleteInactiveOrdersByUserId(userId) {
+        return await this.orderService.deleteInactiveOrdersByUserId(userId);
+    }
 };
 exports.OrderController = OrderController;
 __decorate([
@@ -102,6 +108,20 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "getOrdersByUserId", null);
+__decorate([
+    (0, common_1.Get)('/inactiveOrder/:userId'),
+    __param(0, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "getInactiveOrdersByUserId", null);
+__decorate([
+    (0, common_1.Delete)('/inactiveOrder/:userId'),
+    __param(0, (0, common_1.Param)('userId', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "deleteInactiveOrdersByUserId", null);
 exports.OrderController = OrderController = __decorate([
     (0, swagger_1.ApiTags)('order'),
     (0, common_1.Controller)('Order'),

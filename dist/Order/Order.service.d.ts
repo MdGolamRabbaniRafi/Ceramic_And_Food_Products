@@ -19,4 +19,7 @@ export declare class OrderService {
     }>;
     deleteOrder(orderId: number): Promise<string>;
     getOrdersByUserId(userId: number): Promise<OrderEntity[]>;
+    getInactiveOrdersByUserId(userId: number): Promise<OrderEntity[]>;
+    deleteInactiveOrdersByUserId(userId: number): Promise<string>;
+    hasInactiveOrder(userId: number): Promise<boolean>;
 }

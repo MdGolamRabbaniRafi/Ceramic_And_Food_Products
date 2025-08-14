@@ -62,4 +62,17 @@ export class OrderController {
   ): Promise<OrderEntity[]> {
     return await this.orderService.getOrdersByUserId(userId);
   }
+
+  @Get('/inactiveOrder/:userId')
+  async getInactiveOrdersByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<OrderEntity[]> {
+    return await this.orderService.getInactiveOrdersByUserId(userId);
+  }
+  @Delete('/inactiveOrder/:userId')
+  async deleteInactiveOrdersByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<string> {
+    return await this.orderService.deleteInactiveOrdersByUserId(userId);
+  }
 }

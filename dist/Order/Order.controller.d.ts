@@ -15,4 +15,6 @@ export declare class OrderController {
     }>;
     deleteOrder(id: number): Promise<string>;
     getOrdersByUserId(userId: number): Promise<OrderEntity[]>;
+    getInactiveOrdersByUserId(userId: number): Promise<OrderEntity[]>;
+    deleteInactiveOrdersByUserId(userId: number): Promise<string>;
 }

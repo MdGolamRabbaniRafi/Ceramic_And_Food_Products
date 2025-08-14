@@ -276,6 +276,13 @@ let OrderService = class OrderService {
     }
     async addOrder(orderData) {
         try {
+            const userId = orderData.user.Id;
+            const hasInactiveOrder = await this.hasInactiveOrder(userId);
+            if (hasInactiveOrder) {
+                return {
+                    message: `This user have Inactive order. please confirm that order or remove that order first.`,
+                };
+            }
             let totalOriginalPrice = 0;
             let totalDiscountedPrice = 0;
             const orderProductMappers = [];
@@ -416,6 +423,62 @@ let OrderService = class OrderService {
             where: { user: { Id: userId } },
             relations: ['orderProductMappers', 'products'],
         });
+    }
+    async getInactiveOrdersByUserId(userId) {
+        try {
+            const orders = await this.orderRepo.find({
+                where: {
+                    user: { Id: userId },
+                    isActive: false,
+                },
+                relations: [
+                    'user',
+                    'cupon',
+                    'orderProductMappers',
+                    'orderProductMappers.product',
+                    'products',
+                    'payment',
+                ],
+                order: { date: 'DESC' },
+            });
+            return orders;
+        }
+        catch (error) {
+            console.error('Error fetching inactive orders:', error.message);
+            throw new Error('Failed to fetch inactive orders.');
+        }
+    }
+    async deleteInactiveOrdersByUserId(userId) {
+        try {
+            const inactiveOrders = await this.orderRepo.find({
+                where: { user: { Id: userId }, isActive: false },
+                relations: ['orderProductMappers'],
+            });
+            if (inactiveOrders.length === 0) {
+                return `No inactive orders found for user ID ${userId}.`;
+            }
+            for (const order of inactiveOrders) {
+                await this.orderProductMapperRepo.delete({ order: { Id: order.Id } });
+            }
+            await this.orderRepo.delete(inactiveOrders.map((order) => order.Id));
+            return `${inactiveOrders.length} inactive order(s) deleted successfully for user ID ${userId}.`;
+        }
+        catch (error) {
+            console.error('Error deleting inactive orders:', error.message);
+            throw new Error('Failed to delete inactive orders.');
+        }
+    }
+    async hasInactiveOrder(userId) {
+        try {
+            const count = await this.orderRepo.count({
+                where: { user: { Id: userId }, isActive: false },
+            });
+            return count > 0;
+        }
+        catch (error) {
+            console.error('Error checking inactive orders:', error.message);
+            throw new Error('Failed to check inactive orders.');
+        }
     }
 };
 exports.OrderService = OrderService;
