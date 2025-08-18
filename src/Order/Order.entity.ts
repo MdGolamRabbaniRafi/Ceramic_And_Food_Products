@@ -54,7 +54,7 @@ export class OrderEntity {
 
   @Column({
     type: 'timestamp',
-    default: () => "CURRENT_TIMESTAMP + interval '10 minutes'",
+    default: () => "NOW() + INTERVAL '10 minutes'",
   })
   expireTime: Date;
 

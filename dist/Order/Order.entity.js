@@ -70,7 +70,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({
         type: 'timestamp',
-        default: () => "CURRENT_TIMESTAMP + interval '10 minutes'",
+        default: () => "NOW() + INTERVAL '10 minutes'",
     }),
     __metadata("design:type", Date)
 ], OrderEntity.prototype, "expireTime", void 0);
