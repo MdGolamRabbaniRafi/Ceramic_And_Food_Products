@@ -45,6 +45,15 @@ export class PaymentService {
     if (!adminEmail) {
       throw new Error(`Admin email is missing.${adminEmail}`);
     }
+    if (paymentEntity.orderId) {
+      const order = await this.orderRepo.findOne({
+        where: { Id: paymentEntity.orderId },
+      });
+      if (order) {
+        order.isActive = true; // Set order as active
+        await this.orderRepo.save(order);
+      }
+    }
     const adminNumber = process.env.Admin_Number;
     const message = `
         <!DOCTYPE html>
@@ -251,7 +260,7 @@ export class PaymentService {
       relations: ['user', 'order'],
     });
   }
-  
+
   async remove(id: number): Promise<boolean> {
     try {
       // Find the payment first

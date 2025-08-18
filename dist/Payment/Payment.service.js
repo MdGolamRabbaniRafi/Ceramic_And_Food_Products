@@ -51,6 +51,15 @@ let PaymentService = class PaymentService {
         if (!adminEmail) {
             throw new Error(`Admin email is missing.${adminEmail}`);
         }
+        if (paymentEntity.orderId) {
+            const order = await this.orderRepo.findOne({
+                where: { Id: paymentEntity.orderId },
+            });
+            if (order) {
+                order.isActive = true;
+                await this.orderRepo.save(order);
+            }
+        }
         const adminNumber = process.env.Admin_Number;
         const message = `
         <!DOCTYPE html>
