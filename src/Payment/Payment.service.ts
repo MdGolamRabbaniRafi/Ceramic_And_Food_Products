@@ -187,7 +187,7 @@ export class PaymentService {
       if (paymentData.orderId) {
         await this.orderRepo.update(paymentData.orderId, {
           status: 'shipped',
-          isActive: true
+          isActive: true,
         });
       }
       const adminNumber = process.env.Admin_Number;
@@ -250,5 +250,27 @@ export class PaymentService {
       where: { Id: id },
       relations: ['user', 'order'],
     });
+  }
+  
+  async remove(id: number): Promise<boolean> {
+    try {
+      // Find the payment first
+      const payment = await this.paymentRepo.findOne({ where: { Id: id } });
+
+      if (!payment) {
+        console.error(`Payment with Id ${id} not found.`);
+        return false; // or throw new NotFoundException(`Payment not found`);
+      }
+
+      // Optionally, you could notify the user/admin here before deletion
+
+      // Delete the payment
+      const result = await this.paymentRepo.delete(id);
+
+      return result.affected > 0; // true if deleted, false otherwise
+    } catch (error) {
+      console.error(`Error deleting payment with Id ${id}:`, error.message);
+      return false;
+    }
   }
 }

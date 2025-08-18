@@ -52,6 +52,9 @@ let PaymentController = class PaymentController {
     async getPaymentById(id) {
         return this.paymentService.findOneById(id);
     }
+    async removePaymentById(id) {
+        return this.paymentService.remove(id);
+    }
 };
 exports.PaymentController = PaymentController;
 __decorate([
@@ -118,6 +121,13 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], PaymentController.prototype, "getPaymentById", null);
+__decorate([
+    (0, common_1.Delete)('/remove/:id'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], PaymentController.prototype, "removePaymentById", null);
 exports.PaymentController = PaymentController = __decorate([
     (0, swagger_1.ApiTags)('Payment'),
     (0, common_1.Controller)('Payment'),

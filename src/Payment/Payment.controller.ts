@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -100,5 +101,12 @@ export class PaymentController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<PaymentEntity> {
     return this.paymentService.findOneById(id);
+  }
+
+  @Delete('/remove/:id')
+  async removePaymentById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<boolean> {
+    return this.paymentService.remove(id);
   }
 }

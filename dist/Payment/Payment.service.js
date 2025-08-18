@@ -183,7 +183,7 @@ let PaymentService = class PaymentService {
             if (paymentData.orderId) {
                 await this.orderRepo.update(paymentData.orderId, {
                     status: 'shipped',
-                    isActive: true
+                    isActive: true,
                 });
             }
             const adminNumber = process.env.Admin_Number;
@@ -246,6 +246,21 @@ let PaymentService = class PaymentService {
             where: { Id: id },
             relations: ['user', 'order'],
         });
+    }
+    async remove(id) {
+        try {
+            const payment = await this.paymentRepo.findOne({ where: { Id: id } });
+            if (!payment) {
+                console.error(`Payment with Id ${id} not found.`);
+                return false;
+            }
+            const result = await this.paymentRepo.delete(id);
+            return result.affected > 0;
+        }
+        catch (error) {
+            console.error(`Error deleting payment with Id ${id}:`, error.message);
+            return false;
+        }
     }
 };
 exports.PaymentService = PaymentService;

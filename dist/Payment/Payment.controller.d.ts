@@ -8,4 +8,5 @@ export declare class PaymentController {
     changeStatus(id: string, status: string): Promise<boolean>;
     getAllPayments(): Promise<any[]>;
     getPaymentById(id: number): Promise<PaymentEntity>;
+    removePaymentById(id: number): Promise<boolean>;
 }

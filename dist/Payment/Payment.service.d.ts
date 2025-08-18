@@ -17,4 +17,5 @@ export declare class PaymentService {
     changeStatus(id: number, status: string): Promise<boolean>;
     findAll(): Promise<any[]>;
     findOneById(id: number): Promise<PaymentEntity>;
+    remove(id: number): Promise<boolean>;
 }
